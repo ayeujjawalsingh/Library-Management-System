@@ -34,7 +34,7 @@ print("\t****************************** Library Management System **************
 
 def login(tableName):
     login_option = int(
-        input("Enter Login Option : \n \t1. Email \n \t2. Mobile \n Select: "))
+        input("Enter Login Option : \n \t1. Email \n \t2. Mobile\n Select: "))
     if (login_option == 1):
         login_Email = input("Enter Your Email : ").lower()
         query_email = f"SELECT COUNT(email_id) FROM {tableName} WHERE email_id = '{login_Email}';"
@@ -94,15 +94,183 @@ def login(tableName):
                 print("Wrong Mobile Number")
         except Exception as e:
             print(e)
-
     else:
         print("You have choosen Wrong Input Please try again!!")
 
 ##############################################################################################################
 
-        # Insert Section
+        # Insert & Update Section
 
 ##############################################################################################################
+
+
+def update_Password(tableName):
+    ans = input("Do You Want to change Your Password : (Y/N) ")
+    if (ans == "Y" or ans == "y"):
+        option_password = int(input(
+            "We must first confirm that you are a genuine person or not, \n Please select these option \n 1. Email \n 2. Mobile \n 3. Old Password \n Enter : "))
+
+        # Update Password Using Email and the DOB
+        if (option_password == 1):
+            print("Update Password Using Email")
+            email_id = input("Email : ").lower()
+            update_query_email = f"SELECT COUNT(email_id) FROM {tableName} WHERE email_id = '{email_id}'"
+            try:
+                cursor.execute(update_query_email)
+                result = cursor.fetchone()
+                email_id_data = result[0]
+                if (email_id_data > 0):
+                    email_dob = input(
+                        "Enter your Date of Birth (DD/MM/YYYY) : ")
+                    email_dob_query = f"SELECT date_of_birth FROM {tableName} WHERE email_id = '{email_id}';"
+                    try:
+                        cursor.execute(email_dob_query)
+                        email_dob_data = cursor.fetchall()
+                        if (email_dob_data[0][0] == email_dob):
+                            dummy = True
+                            email_password1 = ''
+                            while (dummy):
+                                email_password1 = input("New Password : ")
+                                email_password2 = input("Confirm Password : ")
+                                if (email_password1 == email_password2):
+                                    if (email_password1 == ''):
+                                        print("Please Write your Password")
+                                        dummy = True
+                                    elif (password_check(email_password1)):
+                                        email_encrypt_new_password = argon2_algo(
+                                            email_password1)
+                                        email_pass_query = f"UPDATE {tableName} SET password = '{email_encrypt_new_password}' WHERE email_id = '{email_id}' AND date_of_birth = '{email_dob}';"
+                                        try:
+                                            cursor.execute(email_pass_query)
+                                            db.commit()
+                                            print("Successful")
+                                        except Exception as e:
+                                            print("Error!!")
+                                        dummy = False
+                                    else:
+                                        dummy = True
+                                else:
+                                    print(
+                                        "Your new password and confirm password are not same..")
+                        else:
+                            print("Wrong DOB!")
+                    except Exception as e:
+                        print(e)
+                else:
+                    print("Wrong Email")
+            except Exception as e:
+                print("Error executing query: {}".format(str(e)))
+
+        # Update Password Using Mobile Number and then DOB
+        elif (option_password == 2):
+            print("Update Password Using Mobile Number : ")
+            mobile_number = input("Mobile Number : ")
+            update_query_mobile = "SELECT COUNT(mobile_number) FROM {} WHERE mobile_number = '{}';".format(
+                tableName, mobile_number)
+            try:
+                cursor.execute(update_query_mobile)
+                mobile_number_data = cursor.fetchall()
+                if (mobile_number_data[0][0] > 0):
+                    mob_dob = input("Enter your Date of Birth (DD/MM/YYYY) : ")
+                    mob_dob_query = "SELECT date_of_birth FROM {} WHERE mobile_number = '{}';".format(
+                        tableName, mobile_number)
+                    try:
+                        cursor.execute(mob_dob_query)
+                        mob_dob_data = cursor.fetchall()
+                        if (mob_dob_data[0][0] == mob_dob):
+                            dummy = True
+                            mob_password1 = ''
+                            while (dummy):
+                                mob_password1 = input("New Password : ")
+                                mob_password2 = input("Confirm Password : ")
+                                if (mob_password1 == mob_password2):
+                                    if (mob_password1 == ''):
+                                        print("Please Write your Password")
+                                        dummy = True
+                                    elif (password_check(mob_password1)):
+                                        mob_encrypt_new_password = argon2_algo(
+                                            mob_password1)
+                                        mob_pass_query = "UPDATE {} SET password = '{}' WHERE mobile_number = '{}' AND date_of_birth = '{}';".format(
+                                            tableName, mob_encrypt_new_password, mobile_number_data[0][0], mob_dob)
+                                        try:
+                                            cursor.execute(mob_pass_query)
+                                            db.commit()
+                                            print("Successful")
+                                        except Exception as e:
+                                            print("Error!!")
+                                        dummy = False
+                                    else:
+                                        dummy = True
+                                else:
+                                    print(
+                                        "Your new password and confirm password are not same..")
+                        else:
+                            print("Wrong Password!")
+                    except Exception as e:
+                        print(e)
+                else:
+                    print("Wrong Email")
+            except Exception as e:
+                print("Error")
+
+        #  Update Password Using Old Password
+        elif (option_password == 3):
+            print("First you need to login : ")
+            email_login = input("Email : ").lower()
+            login_querry = "SELECT COUNT(email_id) FROM {} WHERE email_id = '{}';".format(
+                tableName, email_login)
+            try:
+                cursor.execute(login_querry)
+                data1 = cursor.fetchall()
+                if (data1[0][0] > 0):
+                    password_login = input("Old Password : ")
+                    pass_query = "SELECT password FROM {} WHERE email_id = '{}';".format(
+                        tableName, email_login)
+                    try:
+                        cursor.execute(pass_query)
+                        old_password_data = cursor.fetchall()
+                        ph = PasswordHasher()
+                        password1 = ''
+                        if (ph.verify(old_password_data[0][0], password_login)):
+                            dummy = True
+                            while (dummy):
+                                password1 = input("New Password : ")
+                                password2 = input("Confirm Password : ")
+                                if (password1 == password2):
+                                    if (password1 == ''):
+                                        print("Please Write your Password")
+                                        dummy = True
+                                    elif (password_check(password1)):
+                                        encrypt_new_password = argon2_algo(
+                                            password1)
+                                        old_password_query = "UPDATE {} SET password = '{}' WHERE email_id = '{}' AND password = '{}';".format(
+                                            tableName, encrypt_new_password, email_login, old_password_data[0][0])
+                                        try:
+                                            cursor.execute(old_password_query)
+                                            db.commit()
+                                            print("Successful")
+                                        except Exception as e:
+                                            print("Error!!")
+                                        dummy = False
+                                    else:
+                                        dummy = True
+                                else:
+                                    print(
+                                        "Your new password and confirm password are not same..")
+                        else:
+                            print("Wrong Password!")
+                    except Exception as e:
+                        print(e)
+                else:
+                    print("Wrong Email")
+            except Exception as e:
+                print("Error")
+
+    elif (ans == 'N' | ans == 'n'):
+        print("Good Habbit!! Don't Forget Your Password")
+    else:
+        print("Please choose correct option...")
+    
 
 
 def insert(table_name):
@@ -346,16 +514,17 @@ def password_check(password):
     # if all conditions are met, return True
     return True
 
+
 def add_30_days(date_str):
     # Convert input date string to a datetime object
     date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-    
+
     # Add 30 days to the datetime object
     new_date_obj = date_obj + timedelta(days=30)
-    
+
     # Format the new date object as a string in the same format as the input
     new_date_str = datetime.strftime(new_date_obj, "%Y-%m-%d")
-    
+
     # Return the new date string
     return new_date_str
 ##############################################################################################################
@@ -411,13 +580,15 @@ identity_check = int(input(
 
 if (identity_check == 1):
     # Staff Section Code
-    Staff_login_option = int(input("\t\t\t\t******** First you need to login ******** \n \t1. Login \n \t2. Create a Account \n Select 1 or 2 : "))
+    Staff_login_option = int(input(
+        "\t\t\t\t******** First you need to login ******** \n \t1. Login \n \t2. Forgot or Update Password  \n \t3. Create a Account \n Select : "))
     staffTable = "staffTable"
     if (Staff_login_option == 1):
         print("\t\t\t\t\t******** Login ********")
         list = login(staffTable)
         if (list[0] == "1"):
-            staff_Option = int(input("\nWhat You want to do is either add or remove the book.\n \t1. Add \n \t2. Remove \n  \t3. Status or Collection of books in library \n Select: "))
+            staff_Option = int(input(
+                "\nWhat You want to do is either add or remove the book.\n \t1. Add \n \t2. Remove \n  \t3. Status or Collection of books in library \n Select: "))
             if (staff_Option == 1):
                 staffID_Query = f"SELECT id FROM staffTable WHERE mobile_number = '{list[1]}';"
                 try:
@@ -443,7 +614,8 @@ if (identity_check == 1):
                         cursor.execute(book_Records_Check_Querry3)
                         book_records_data3 = cursor.fetchall()
                         if (book_records_data1[0][0] > 0 and book_records_data3[0][0] > 0):
-                            book_Records_Querry = "UPDATE bookRecords SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}';".format(book_Quantity+book_records_data2[0][0], book_Name, book_Author)
+                            book_Records_Querry = "UPDATE bookRecords SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}';".format(
+                                book_Quantity+book_records_data2[0][0], book_Name, book_Author)
                             try:
                                 cursor.execute(book_Records_Querry)
                                 # print("Same")
@@ -466,7 +638,8 @@ if (identity_check == 1):
                     print(e)
 
             elif (staff_Option == 2):
-                Remove_Book_Name = input("Enter Book Name and Author Name that you want to remove \n1. Book Name: ")
+                Remove_Book_Name = input(
+                    "Enter Book Name and Author Name that you want to remove \n1. Book Name: ")
                 Remove_Author_Name = input("2. Book Author Name: ")
                 staffID_Query = f"SELECT id FROM staffTable WHERE mobile_number = '{list[1]}';"
                 try:
@@ -475,15 +648,17 @@ if (identity_check == 1):
                     staffID_data = cursor.fetchall()
                     staffID = staffID_data[0][0]
                     print("2")
-                    check_remove_book_query = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}' AND book_author = '{}' AND staff_id = '{}'".format(Remove_Book_Name,Remove_Author_Name,staffID)
+                    check_remove_book_query = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}' AND book_author = '{}' AND staff_id = '{}'".format(
+                        Remove_Book_Name, Remove_Author_Name, staffID)
                     try:
                         print("3")
                         cursor.execute(check_remove_book_query)
                         check_remove_book_query_data = cursor.fetchall()
                         print(check_remove_book_query_data[0])
-                        if(check_remove_book_query_data[0][0]>0):
+                        if (check_remove_book_query_data[0][0] > 0):
                             print("5")
-                            Remove_Book_Query = "UPDATE bookRecords SET status = '{}' WHERE book_name = '{}' AND book_author = '{}' AND staff_id = '{}'".format(2,Remove_Book_Name,Remove_Author_Name,staffID)
+                            Remove_Book_Query = "UPDATE bookRecords SET status = '{}' WHERE book_name = '{}' AND book_author = '{}' AND staff_id = '{}'".format(
+                                2, Remove_Book_Name, Remove_Author_Name, staffID)
                             try:
                                 print("6")
                                 cursor.execute(Remove_Book_Query)
@@ -495,8 +670,8 @@ if (identity_check == 1):
                         print(e)
                 except Exception as e:
                     print(e)
-                
-            elif(staff_Option == 3):
+
+            elif (staff_Option == 3):
                 staff_status_Query = f"SELECT id FROM staffTable WHERE mobile_number = '{list[1]}';"
                 try:
                     cursor.execute(staff_status_Query)
@@ -507,7 +682,8 @@ if (identity_check == 1):
                     # fetch all rows of data from the SELECT statement
                     rows = cursor.fetchall()
                     # create a PrettyTable object and set the column names
-                    table = PrettyTable(['Book Name','Book Author','Quantity'])
+                    table = PrettyTable(
+                        ['Book Name', 'Book Author', 'Quantity'])
                     # iterate through the rows of data and add them to the table
                     for row in rows:
                         table.add_row(row)
@@ -519,7 +695,9 @@ if (identity_check == 1):
                 print("You have choosen Wrong Input Please try again!!")
         else:
             print("Try Again!!")
-    elif (Staff_login_option == 2):
+    elif(Staff_login_option == 2):
+        update_Password(staffTable)
+    elif (Staff_login_option == 3):
         print("\t\t\t\t******** Create an account ********")
         insert(staffTable)
     else:
@@ -527,13 +705,15 @@ if (identity_check == 1):
 
 elif (identity_check == 2):
     # User Section Code
-    User_login_option = int(input("########## First you need to login ########## \n 1. Login \n 2. Create a Account \n Select 1 or 2 : "))
+    User_login_option = int(input(
+        "\t\t\t\t########## First you need to login ########## \n \t1. Login \n \t2. Forgot or Update Password \n \t3. Create a Account \n Select : "))
     userTable = "userTable"
     if (User_login_option == 1):
-        print("########## Login ##########")
+        print("\t\t\t\t\t########## Login ##########")
         list = login(userTable)
         if (list[0] == "1"):
-            user_Option = int(input("What You want to do is either book issue or return the book.\n 1. Book Issue \n 2. Return Book \n 3. Status of your account \n Select: "))
+            user_Option = int(input(
+                "What You want to do is either book issue or return the book.\n 1. Book Issue \n 2. Return Book \n 3. Status of your account \n Select: "))
             if (user_Option == 1):
                 user_Query = f"SELECT id FROM userTable WHERE mobile_number = '{list[1]}';"
                 try:
@@ -543,9 +723,12 @@ elif (identity_check == 2):
                     book_Name = input("Enter book name: ").lower()
                     book_Author = input("Enter book author name: ").lower()
                     book_Quantity = int(input("Enter book Quantity: "))
-                    book_Issue_Check_Querry1 = "SELECT book_name, book_author, quantity FROM bookRecords WHERE book_name = '{}' AND book_author = '{}';".format(book_Name, book_Author)
-                    book_Issue_Check_Querry2 = "SELECT COUNT(book_name) FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}';".format(book_Name, book_Author,userID)
-                    book_Issue_Check_Querry3 = "SELECT quantity FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(book_Name, book_Author)
+                    book_Issue_Check_Querry1 = "SELECT book_name, book_author, quantity FROM bookRecords WHERE book_name = '{}' AND book_author = '{}';".format(
+                        book_Name, book_Author)
+                    book_Issue_Check_Querry2 = "SELECT COUNT(book_name) FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}';".format(
+                        book_Name, book_Author, userID)
+                    book_Issue_Check_Querry3 = "SELECT quantity FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
+                        book_Name, book_Author)
                     try:
                         cursor.execute(book_Issue_Check_Querry1)
                         book_Issue_data1 = cursor.fetchall()
@@ -562,11 +745,13 @@ elif (identity_check == 2):
                                 if ((int(book_Quantity)) <= book_Issue_data1[0][2]):
                                     # print("4")
                                     if (book_Issue_data2[0][0] > 0):
-                                        if ((int(book_Quantity)+ int(book_Issue_data3[0][0]) <= book_Issue_data1[0][2])):
+                                        if ((int(book_Quantity) + int(book_Issue_data3[0][0]) <= book_Issue_data1[0][2])):
                                             # print("5")
-                                            book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}';".format(int(book_Quantity)+int(book_Issue_data3[0][0]), book_Name, book_Author,userID)
+                                            book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}';".format(
+                                                int(book_Quantity)+int(book_Issue_data3[0][0]), book_Name, book_Author, userID)
                                             try:
-                                                cursor.execute(book_Issue_Querry)
+                                                cursor.execute(
+                                                    book_Issue_Querry)
                                                 db.commit()
                                                 # cursor.execute("CREATE TRIGGER set_BookIssueDate BEFORE INSERT ON BookIssue FOR EACH ROW EXECUTE FUNCTION set_BookIssueDate()")
                                                 # # execute a CREATE FUNCTION statement to define the 'set_BookIssueDate' function that sets the value of the 'BookIssueDate' column to the current date
@@ -581,14 +766,19 @@ elif (identity_check == 2):
                                                 # """)
                                                 # # commit the transaction to make the changes permanent
                                                 # db.commit()
-                                                book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(book_Name, book_Author)
+                                                book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
+                                                    book_Name, book_Author)
                                                 try:
-                                                    cursor.execute(book_Issue_Date)
+                                                    cursor.execute(
+                                                        book_Issue_Date)
                                                     book_Issue_Date_Data = cursor.fetchall()
-                                                    book_Due_Date = add_30_days(book_Issue_Date_Data[0][0])
-                                                    book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}';".format(book_Due_Date,book_Name, book_Author)
+                                                    book_Due_Date = add_30_days(
+                                                        book_Issue_Date_Data[0][0])
+                                                    book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}';".format(
+                                                        book_Due_Date, book_Name, book_Author)
                                                     try:
-                                                        cursor.execute(book_Due)
+                                                        cursor.execute(
+                                                            book_Due)
                                                         db.commit
                                                     except Exception as e:
                                                         print(e)
@@ -597,11 +787,13 @@ elif (identity_check == 2):
                                             except Exception as e:
                                                 print(e)
                                         else:
-                                            print("That quantity of books are not available to this library please search on other library.")
+                                            print(
+                                                "That quantity of books are not available to this library please search on other library.")
 
                                     else:
                                         # print("6")
-                                        book_Issue_Querry = "INSERT INTO bookIssue(userid,book_name,book_author,quantity) VALUES('{}','{}','{}','{}');".format(userID, book_Name, book_Author, book_Quantity)
+                                        book_Issue_Querry = "INSERT INTO bookIssue(userid,book_name,book_author,quantity) VALUES('{}','{}','{}','{}');".format(
+                                            userID, book_Name, book_Author, book_Quantity)
                                         try:
                                             # print("7")
                                             cursor.execute(book_Issue_Querry)
@@ -619,7 +811,7 @@ elif (identity_check == 2):
                                             # """)
                                             # # commit the transaction to make the changes permanent
                                             # db.commit()
-                                            
+
                                             # book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(book_Name, book_Author)
                                             # try:
                                             #     cursor.execute(book_Issue_Date)
@@ -633,13 +825,15 @@ elif (identity_check == 2):
                                             #         print(e)
                                             # except Exception as e:
                                             #     print(e)
-                                            
+
                                         except Exception as e:
                                             print(e)
                                 else:
-                                    print("That quantity of books are not available to this library please search on other library.")
+                                    print(
+                                        "That quantity of books are not available to this library please search on other library.")
                         else:
-                            print("This book are not available in my library please search on other library.")
+                            print(
+                                "This book are not available in my library please search on other library.")
                     except Exception as e:
                         print(e)
                 except Exception as e:
@@ -671,21 +865,24 @@ elif (identity_check == 2):
                             if (book_Issue_data1[0][0] == book_Name and book_Issue_data1[0][1] == book_Author):
                                 if ((int(book_Issue_data3[0][0]) - int(book_Quantity)) >= 0):
                                     if (book_Issue_data2[0][0] > 0):
-                                        book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}';".format(int(book_Issue_data3[0][0]) - int(book_Quantity), book_Name, book_Author)
+                                        book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}';".format(
+                                            int(book_Issue_data3[0][0]) - int(book_Quantity), book_Name, book_Author)
                                         try:
                                             cursor.execute(book_Issue_Querry)
                                             db.commit()
                                         except Exception as e:
                                             print(e)
                                 else:
-                                    print("That quantity of books are not from this library please return this book to other library.")
+                                    print(
+                                        "That quantity of books are not from this library please return this book to other library.")
                         else:
-                            print("This book are not from this library please go on other library.")
+                            print(
+                                "This book are not from this library please go on other library.")
                     except Exception as e:
                         print(e)
                 except Exception as e:
                     print(e)
-            elif(user_Option==3):
+            elif (user_Option == 3):
                 status_Query = f"SELECT id FROM userTable WHERE mobile_number = '{list[1]}';"
                 try:
                     cursor.execute(status_Query)
@@ -696,7 +893,8 @@ elif (identity_check == 2):
                     # fetch all rows of data from the SELECT statement
                     rows = cursor.fetchall()
                     # create a PrettyTable object and set the column names
-                    table = PrettyTable(['Book Name','Book Author','Quantity','Fine','Due Date','Book Issue Date'])
+                    table = PrettyTable(
+                        ['Book Name', 'Book Author', 'Quantity', 'Fine', 'Due Date', 'Book Issue Date'])
                     # iterate through the rows of data and add them to the table
                     for row in rows:
                         table.add_row(row)
@@ -706,17 +904,15 @@ elif (identity_check == 2):
                     print(e)
             else:
                 print("You have choosen Wrong Input Please try again!!")
-    elif (User_login_option == 2):
-        print("########## Create an account ##########")
+    elif(User_login_option == 2):
+        update_Password(userTable)
+    elif (User_login_option == 3):
+        print("\t\t\t\t########## Create an account ##########")
         insert(userTable)
     else:
         print("You have choosen Wrong Input Please try again!!")
 else:
     print("You have choosen Wrong Input Please try again!!")
-
-
-
-
 
 
 ##############################################################################################################
@@ -739,4 +935,3 @@ else:
 # ALTER TABLE bookrecords DROP COLUMN staff_id;
 # ALTER TABLE bookreturn ADD PRIMARY KEY (id);
 # ALTER TABLE bookreturn ADD COLUMN id SERIAL;
-

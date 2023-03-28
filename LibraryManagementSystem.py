@@ -587,8 +587,23 @@ if (identity_check == 1):
         print("\t\t\t\t\t******** Login ********")
         list = login(staffTable)
         if (list[0] == "1"):
+            status_Query = f"SELECT book_name,book_author,quantity FROM bookrecords where status= '1';"
+            try:
+                cursor.execute(status_Query)
+                # fetch all rows of data from the SELECT statement
+                rows = cursor.fetchall()
+                # create a PrettyTable object and set the column names
+                table = PrettyTable(['Book Name', 'Book Author', 'Quantity'])
+                # iterate through the rows of data and add them to the table
+                for row in rows:
+                    table.add_row(row)
+                # print the table
+                print(table)
+            except Exception as e:
+                print(e)
             staff_Option = int(input(
-                "\nWhat You want to do is either add or remove the book.\n \t1. Add \n \t2. Remove \n  \t3. Status or Collection of books in library \n Select: "))
+                "\t\tAll of these books are already available in this library.\n\n What would you like to do? You can either add a book, remove a book, or check your status. \n\n 1. Add \n 2. Remove \n 3. Status \n\n Select: "))
+            
             if (staff_Option == 1):
                 staffID_Query = f"SELECT id FROM staffTable WHERE mobile_number = '{list[1]}';"
                 try:
@@ -597,50 +612,53 @@ if (identity_check == 1):
                     # print(list[1])
                     staffID = staffID_data[0][0]
                     # print(staffID)
-                    book_Name = input("Enter book name: ").lower()
-                    book_Author = input("Enter book author name: ").lower()
+                    book_Name = input("Enter book name: ").lower().strip()
+                    book_Author = input("Enter book author name: ").lower().strip()
                     book_Quantity = int(input("Enter book Quantity: "))
-                    book_Records_Check_Querry1 = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}';".format(
-                        book_Name)
-                    book_Records_Check_Querry2 = "SELECT quantity FROM bookRecords WHERE book_name = '{}';".format(
-                        book_Name)
-                    book_Records_Check_Querry3 = "SELECT COUNT(book_author) FROM bookRecords WHERE book_author = '{}';".format(
-                        book_Author)
-                    try:
-                        cursor.execute(book_Records_Check_Querry1)
-                        book_records_data1 = cursor.fetchall()
-                        cursor.execute(book_Records_Check_Querry2)
-                        book_records_data2 = cursor.fetchall()
-                        cursor.execute(book_Records_Check_Querry3)
-                        book_records_data3 = cursor.fetchall()
-                        if (book_records_data1[0][0] > 0 and book_records_data3[0][0] > 0):
-                            book_Records_Querry = "UPDATE bookRecords SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}';".format(
-                                book_Quantity+book_records_data2[0][0], book_Name, book_Author)
-                            try:
-                                cursor.execute(book_Records_Querry)
-                                # print("Same")
-                                db.commit()
-                            except Exception as e:
-                                print(e)
-                        else:
-                            book_Records_Querry = "INSERT INTO bookRecords(staff_id,book_name,book_author,quantity) VALUES('{}','{}','{}','{}');".format(
-                                staffID, book_Name, book_Author, book_Quantity)
-                            try:
-                                cursor.execute(book_Records_Querry)
-                                db.commit()
-                                # print(book_Name)
-                                # print("Differ")
-                            except Exception as e:
-                                print(e)
-                    except Exception as e:
-                        print(e)
+                    if(book_Quantity<0):
+                        print("You have enter -ve quantity of books.")
+                    else:
+                        book_Records_Check_Querry1 = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}';".format(
+                            book_Name)
+                        book_Records_Check_Querry2 = "SELECT quantity FROM bookRecords WHERE book_name = '{}';".format(
+                            book_Name)
+                        book_Records_Check_Querry3 = "SELECT COUNT(book_author) FROM bookRecords WHERE book_author = '{}';".format(
+                            book_Author)
+                        try:
+                            cursor.execute(book_Records_Check_Querry1)
+                            book_records_data1 = cursor.fetchall()
+                            cursor.execute(book_Records_Check_Querry2)
+                            book_records_data2 = cursor.fetchall()
+                            cursor.execute(book_Records_Check_Querry3)
+                            book_records_data3 = cursor.fetchall()
+                            if (book_records_data1[0][0] > 0 and book_records_data3[0][0] > 0):
+                                book_Records_Querry = "UPDATE bookRecords SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}' AND status= '1';".format(
+                                    book_Quantity+book_records_data2[0][0], book_Name, book_Author)
+                                try:
+                                    cursor.execute(book_Records_Querry)
+                                    # print("Same")
+                                    db.commit()
+                                except Exception as e:
+                                    print(e)
+                            else:
+                                book_Records_Querry = "INSERT INTO bookRecords(staff_id,book_name,book_author,quantity) VALUES('{}','{}','{}','{}');".format(
+                                    staffID, book_Name, book_Author, book_Quantity)
+                                try:
+                                    cursor.execute(book_Records_Querry)
+                                    db.commit()
+                                    # print(book_Name)
+                                    # print("Differ")
+                                except Exception as e:
+                                    print(e)
+                        except Exception as e:
+                            print(e)
                 except Exception as e:
                     print(e)
 
             elif (staff_Option == 2):
                 Remove_Book_Name = input(
-                    "Enter Book Name and Author Name that you want to remove \n1. Book Name: ")
-                Remove_Author_Name = input("2. Book Author Name: ")
+                    "Enter Book Name and Author Name that you want to remove \n1. Book Name: ").lower().strip()
+                Remove_Author_Name = input("2. Book Author Name: ").lower().strip()
                 staffID_Query = f"SELECT id FROM staffTable WHERE mobile_number = '{list[1]}';"
                 try:
                     print("1")
@@ -657,7 +675,7 @@ if (identity_check == 1):
                         print(check_remove_book_query_data[0])
                         if (check_remove_book_query_data[0][0] > 0):
                             print("5")
-                            Remove_Book_Query = "UPDATE bookRecords SET status = '{}' WHERE book_name = '{}' AND book_author = '{}' AND staff_id = '{}'".format(
+                            Remove_Book_Query = "UPDATE bookRecords SET status = '{}' WHERE book_name = '{}' AND book_author = '{}' AND staff_id = '{}' AND status= '1'".format(
                                 2, Remove_Book_Name, Remove_Author_Name, staffID)
                             try:
                                 print("6")
@@ -712,46 +730,110 @@ elif (identity_check == 2):
         print("\t\t\t\t\t########## Login ##########")
         list = login(userTable)
         if (list[0] == "1"):
+            status_Query = f"SELECT book_name,book_author,quantity FROM bookrecords where status= '1';"
+            try:
+                cursor.execute(status_Query)
+                # fetch all rows of data from the SELECT statement
+                rows = cursor.fetchall()
+                # create a PrettyTable object and set the column names
+                table = PrettyTable(['Book Name', 'Book Author', 'Quantity'])
+                # iterate through the rows of data and add them to the table
+                for row in rows:
+                    table.add_row(row)
+                # print the table
+                print(table)
+            except Exception as e:
+                print(e)
             user_Option = int(input(
-                "What You want to do is either book issue or return the book.\n 1. Book Issue \n 2. Return Book \n 3. Status of your account \n Select: "))
+                "\t\tAll of these books are available in my library.\n\n What would you like to do? You can either issue a book, return a book, or check your status. \n\n 1. Book Issue \n 2. Return Book \n 3. Status of your account \n\n Select: "))
             if (user_Option == 1):
                 user_Query = f"SELECT id FROM userTable WHERE mobile_number = '{list[1]}';"
                 try:
                     cursor.execute(user_Query)
                     user_data = cursor.fetchall()
                     userID = user_data[0][0]
-                    book_Name = input("Enter book name: ").lower()
-                    book_Author = input("Enter book author name: ").lower()
+                    book_Name = input("Enter book name: ").lower().strip()
+                    book_Author = input("Enter book author name: ").lower().strip()
                     book_Quantity = int(input("Enter book Quantity: "))
-                    book_Issue_Check_Querry1 = "SELECT book_name, book_author, quantity FROM bookRecords WHERE book_name = '{}' AND book_author = '{}';".format(
-                        book_Name, book_Author)
-                    book_Issue_Check_Querry2 = "SELECT COUNT(book_name) FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}';".format(
-                        book_Name, book_Author, userID)
-                    book_Issue_Check_Querry3 = "SELECT quantity FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
-                        book_Name, book_Author)
-                    try:
-                        cursor.execute(book_Issue_Check_Querry1)
-                        book_Issue_data1 = cursor.fetchall()
-                        cursor.execute(book_Issue_Check_Querry2)
-                        book_Issue_data2 = cursor.fetchall()
-                        cursor.execute(book_Issue_Check_Querry3)
-                        book_Issue_data3 = cursor.fetchall()
-                        cursor.execute(book_Issue_Check_Querry1)
-                        # print("1")
-                        if (cursor.fetchone() is not None):
-                            # print("2")
-                            if (book_Issue_data1[0][0] == book_Name and book_Issue_data1[0][1] == book_Author):
-                                # print("3")
-                                if ((int(book_Quantity)) <= book_Issue_data1[0][2]):
-                                    # print("4")
-                                    if (book_Issue_data2[0][0] > 0):
-                                        if ((int(book_Quantity) + int(book_Issue_data3[0][0]) <= book_Issue_data1[0][2])):
-                                            # print("5")
-                                            book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}';".format(
-                                                int(book_Quantity)+int(book_Issue_data3[0][0]), book_Name, book_Author, userID)
+                    if (book_Quantity<0):
+                        print("You have enter -ve quantity of book")
+                    elif(book_Quantity==0):
+                        print("You have entered Zero quantity of book.")
+                    elif(book_Quantity==1):
+                        book_Issue_Check_Querry1 = "SELECT book_name, book_author, quantity FROM bookRecords WHERE book_name = '{}' AND book_author = '{}';".format(
+                            book_Name, book_Author)
+                        book_Issue_Check_Querry2 = "SELECT COUNT(book_name) FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}';".format(
+                            book_Name, book_Author, userID)
+                        book_Issue_Check_Querry3 = "SELECT quantity FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
+                            book_Name, book_Author)
+                        try:
+                            cursor.execute(book_Issue_Check_Querry1)
+                            book_Issue_data1 = cursor.fetchall()
+                            cursor.execute(book_Issue_Check_Querry2)
+                            book_Issue_data2 = cursor.fetchall()
+                            cursor.execute(book_Issue_Check_Querry3)
+                            book_Issue_data3 = cursor.fetchall()
+                            cursor.execute(book_Issue_Check_Querry1)
+                            # print("1")
+                            if (cursor.fetchone() is not None):
+                                # print("2")
+                                if (book_Issue_data1[0][0] == book_Name and book_Issue_data1[0][1] == book_Author):
+                                    # print("3")
+                                    if ((int(book_Quantity)) <= book_Issue_data1[0][2]):
+                                        # print("4")
+                                        if (book_Issue_data2[0][0] > 0):
+                                            if ((int(book_Quantity) + int(book_Issue_data3[0][0]) <= book_Issue_data1[0][2])):
+                                                # print("5")
+                                                book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}' AND status= '1';".format(
+                                                    int(book_Quantity)+int(book_Issue_data3[0][0]), book_Name, book_Author, userID)
+                                                try:
+                                                    cursor.execute(
+                                                        book_Issue_Querry)
+                                                    db.commit()
+                                                    # cursor.execute("CREATE TRIGGER set_BookIssueDate BEFORE INSERT ON BookIssue FOR EACH ROW EXECUTE FUNCTION set_BookIssueDate()")
+                                                    # # execute a CREATE FUNCTION statement to define the 'set_BookIssueDate' function that sets the value of the 'BookIssueDate' column to the current date
+                                                    # cursor.execute("""
+                                                    # CREATE OR REPLACE FUNCTION set_BookIssueDate()
+                                                    # RETURNS TRIGGER AS $$
+                                                    # BEGIN
+                                                    #     NEW.BookIssueDate := CURRENT_DATE;
+                                                    #     RETURN NEW;
+                                                    # END;
+                                                    # $$ LANGUAGE plpgsql;
+                                                    # """)
+                                                    # # commit the transaction to make the changes permanent
+                                                    # db.commit()
+                                                    book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND status= '1';".format(
+                                                        book_Name, book_Author)
+                                                    try:
+                                                        cursor.execute(
+                                                            book_Issue_Date)
+                                                        book_Issue_Date_Data = cursor.fetchall()
+                                                        book_Due_Date = add_30_days(
+                                                            book_Issue_Date_Data[0][0])
+                                                        book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}' AND status= '1';".format(
+                                                            book_Due_Date, book_Name, book_Author)
+                                                        try:
+                                                            cursor.execute(
+                                                                book_Due)
+                                                            db.commit
+                                                        except Exception as e:
+                                                            print(e)
+                                                    except Exception as e:
+                                                        print(e)
+                                                except Exception as e:
+                                                    print(e)
+                                            else:
+                                                print(
+                                                    "That quantity of books are not available to this library please search on other library.")
+
+                                        else:
+                                            # print("6")
+                                            book_Issue_Querry = "INSERT INTO bookIssue(userid,book_name,book_author,quantity) VALUES('{}','{}','{}','{}');".format(
+                                                userID, book_Name, book_Author, book_Quantity)
                                             try:
-                                                cursor.execute(
-                                                    book_Issue_Querry)
+                                                # print("7")
+                                                cursor.execute(book_Issue_Querry)
                                                 db.commit()
                                                 # cursor.execute("CREATE TRIGGER set_BookIssueDate BEFORE INSERT ON BookIssue FOR EACH ROW EXECUTE FUNCTION set_BookIssueDate()")
                                                 # # execute a CREATE FUNCTION statement to define the 'set_BookIssueDate' function that sets the value of the 'BookIssueDate' column to the current date
@@ -766,76 +848,33 @@ elif (identity_check == 2):
                                                 # """)
                                                 # # commit the transaction to make the changes permanent
                                                 # db.commit()
-                                                book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
-                                                    book_Name, book_Author)
-                                                try:
-                                                    cursor.execute(
-                                                        book_Issue_Date)
-                                                    book_Issue_Date_Data = cursor.fetchall()
-                                                    book_Due_Date = add_30_days(
-                                                        book_Issue_Date_Data[0][0])
-                                                    book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}';".format(
-                                                        book_Due_Date, book_Name, book_Author)
-                                                    try:
-                                                        cursor.execute(
-                                                            book_Due)
-                                                        db.commit
-                                                    except Exception as e:
-                                                        print(e)
-                                                except Exception as e:
-                                                    print(e)
+
+                                                # book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(book_Name, book_Author)
+                                                # try:
+                                                #     cursor.execute(book_Issue_Date)
+                                                #     book_Issue_Date_Data = cursor.fetchall()
+                                                #     book_Due_Date = add_30_days(book_Issue_Date_Data[0][0])
+                                                #     book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}';".format(book_Due_Date,book_Name, book_Author)
+                                                #     try:
+                                                #         cursor.execute(book_Due)
+                                                #         db.commit
+                                                #     except Exception as e:
+                                                #         print(e)
+                                                # except Exception as e:
+                                                #     print(e)
+
                                             except Exception as e:
                                                 print(e)
-                                        else:
-                                            print(
-                                                "That quantity of books are not available to this library please search on other library.")
-
                                     else:
-                                        # print("6")
-                                        book_Issue_Querry = "INSERT INTO bookIssue(userid,book_name,book_author,quantity) VALUES('{}','{}','{}','{}');".format(
-                                            userID, book_Name, book_Author, book_Quantity)
-                                        try:
-                                            # print("7")
-                                            cursor.execute(book_Issue_Querry)
-                                            db.commit()
-                                            # cursor.execute("CREATE TRIGGER set_BookIssueDate BEFORE INSERT ON BookIssue FOR EACH ROW EXECUTE FUNCTION set_BookIssueDate()")
-                                            # # execute a CREATE FUNCTION statement to define the 'set_BookIssueDate' function that sets the value of the 'BookIssueDate' column to the current date
-                                            # cursor.execute("""
-                                            # CREATE OR REPLACE FUNCTION set_BookIssueDate()
-                                            # RETURNS TRIGGER AS $$
-                                            # BEGIN
-                                            #     NEW.BookIssueDate := CURRENT_DATE;
-                                            #     RETURN NEW;
-                                            # END;
-                                            # $$ LANGUAGE plpgsql;
-                                            # """)
-                                            # # commit the transaction to make the changes permanent
-                                            # db.commit()
-
-                                            # book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(book_Name, book_Author)
-                                            # try:
-                                            #     cursor.execute(book_Issue_Date)
-                                            #     book_Issue_Date_Data = cursor.fetchall()
-                                            #     book_Due_Date = add_30_days(book_Issue_Date_Data[0][0])
-                                            #     book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}';".format(book_Due_Date,book_Name, book_Author)
-                                            #     try:
-                                            #         cursor.execute(book_Due)
-                                            #         db.commit
-                                            #     except Exception as e:
-                                            #         print(e)
-                                            # except Exception as e:
-                                            #     print(e)
-
-                                        except Exception as e:
-                                            print(e)
-                                else:
-                                    print(
-                                        "That quantity of books are not available to this library please search on other library.")
-                        else:
-                            print(
-                                "This book are not available in my library please search on other library.")
-                    except Exception as e:
-                        print(e)
+                                        print(
+                                            "That quantity of books are not available to this library please search on other library.")
+                            else:
+                                print(
+                                    "This book are not available in my library please search on other library.")
+                        except Exception as e:
+                            print(e)
+                    else:
+                        print("You have only permission to issue a single book")
                 except Exception as e:
                     print(e)
             elif (user_Option == 2):
@@ -844,42 +883,45 @@ elif (identity_check == 2):
                     cursor.execute(user_Query)
                     user_data = cursor.fetchall()
                     userID = user_data[0][0]
-                    book_Name = input("Enter book name: ").lower()
-                    book_Author = input("Enter book author name: ").lower()
+                    book_Name = input("Enter book name: ").lower().strip()
+                    book_Author = input("Enter book author name: ").lower().strip()
                     book_Quantity = int(input("Enter book Quantity: "))
-                    book_Issue_Check_Querry1 = "SELECT book_name, book_author, quantity FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
-                        book_Name, book_Author)
-                    book_Issue_Check_Querry2 = "SELECT COUNT(book_name) FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
-                        book_Name, book_Author)
-                    book_Issue_Check_Querry3 = "SELECT quantity FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
-                        book_Name, book_Author)
-                    try:
-                        cursor.execute(book_Issue_Check_Querry1)
-                        book_Issue_data1 = cursor.fetchall()
-                        cursor.execute(book_Issue_Check_Querry2)
-                        book_Issue_data2 = cursor.fetchall()
-                        cursor.execute(book_Issue_Check_Querry3)
-                        book_Issue_data3 = cursor.fetchall()
-                        cursor.execute(book_Issue_Check_Querry1)
-                        if (cursor.fetchone() is not None):
-                            if (book_Issue_data1[0][0] == book_Name and book_Issue_data1[0][1] == book_Author):
-                                if ((int(book_Issue_data3[0][0]) - int(book_Quantity)) >= 0):
-                                    if (book_Issue_data2[0][0] > 0):
-                                        book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}';".format(
-                                            int(book_Issue_data3[0][0]) - int(book_Quantity), book_Name, book_Author)
-                                        try:
-                                            cursor.execute(book_Issue_Querry)
-                                            db.commit()
-                                        except Exception as e:
-                                            print(e)
-                                else:
-                                    print(
-                                        "That quantity of books are not from this library please return this book to other library.")
-                        else:
-                            print(
-                                "This book are not from this library please go on other library.")
-                    except Exception as e:
-                        print(e)
+                    if(book_Quantity==1):
+                        book_Issue_Check_Querry1 = "SELECT book_name, book_author, quantity FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
+                            book_Name, book_Author)
+                        book_Issue_Check_Querry2 = "SELECT COUNT(book_name) FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
+                            book_Name, book_Author)
+                        book_Issue_Check_Querry3 = "SELECT quantity FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(
+                            book_Name, book_Author)
+                        try:
+                            cursor.execute(book_Issue_Check_Querry1)
+                            book_Issue_data1 = cursor.fetchall()
+                            cursor.execute(book_Issue_Check_Querry2)
+                            book_Issue_data2 = cursor.fetchall()
+                            cursor.execute(book_Issue_Check_Querry3)
+                            book_Issue_data3 = cursor.fetchall()
+                            cursor.execute(book_Issue_Check_Querry1)
+                            if (cursor.fetchone() is not None):
+                                if (book_Issue_data1[0][0] == book_Name and book_Issue_data1[0][1] == book_Author):
+                                    if ((int(book_Issue_data3[0][0]) - int(book_Quantity)) >= 0):
+                                        if (book_Issue_data2[0][0] > 0):
+                                            book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}';".format(
+                                                int(book_Issue_data3[0][0]) - int(book_Quantity), book_Name, book_Author)
+                                            try:
+                                                cursor.execute(book_Issue_Querry)
+                                                db.commit()
+                                            except Exception as e:
+                                                print(e)
+                                    else:
+                                        print(
+                                            "That quantity of books are not from this library please return this book to other library.")
+                            else:
+                                print(
+                                    "This book are not from this library please go on other library.")
+                        except Exception as e:
+                            print(e)
+                    else:
+                        print("You have only permit to issue a single book or return a single book only.")
                 except Exception as e:
                     print(e)
             elif (user_Option == 3):
@@ -888,7 +930,7 @@ elif (identity_check == 2):
                     cursor.execute(status_Query)
                     status_data = cursor.fetchall()
                     status_UserID = status_data[0][0]
-                    sta_Query = f"SELECT book_name,book_author,quantity,fine,duedate,bookissuedate FROM bookIssue WHERE userid = '{status_UserID}';"
+                    sta_Query = f"SELECT book_name,book_author,quantity,fine,duedate,bookissuedate FROM bookIssue WHERE userid = '{status_UserID}' AND status = '1';"
                     cursor.execute(sta_Query)
                     # fetch all rows of data from the SELECT statement
                     rows = cursor.fetchall()

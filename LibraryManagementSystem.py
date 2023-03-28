@@ -905,7 +905,7 @@ elif (identity_check == 2):
                                 if (book_Issue_data1[0][0] == book_Name and book_Issue_data1[0][1] == book_Author):
                                     if ((int(book_Issue_data3[0][0]) - int(book_Quantity)) >= 0):
                                         if (book_Issue_data2[0][0] > 0):
-                                            book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}';".format(
+                                            book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}',status = '2' WHERE book_name = '{}' AND book_author = '{}';".format(
                                                 int(book_Issue_data3[0][0]) - int(book_Quantity), book_Name, book_Author)
                                             try:
                                                 cursor.execute(book_Issue_Querry)

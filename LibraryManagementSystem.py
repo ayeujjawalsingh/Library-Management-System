@@ -27,7 +27,30 @@ cursor = db.cursor()
 print("\t****************************** Library Management System ******************************\n")
 ##############################################################################################################
 
-# Login Section
+                                            # Fine Section
+
+##############################################################################################################
+
+import datetime
+def fine():
+    cursor.execute('SELECT bookissuedate, duedate, fine FROM bookissue')
+    rows = cursor.fetchall()
+    for row in rows:
+        duedate_str = row[1].strftime('%Y-%m-%d')
+        duedate = datetime.datetime.strptime(duedate_str, '%Y-%m-%d').date()
+        current_date = datetime.date.today()
+        if current_date > duedate:
+            days_late = (current_date - duedate).days
+            fine = days_late * 1  # assuming a fine of Rs. 1 per day
+        else:
+            fine = 0
+        cursor.execute("UPDATE bookissue SET fine=%s WHERE bookissuedate=%s AND duedate=%s", (fine, row[0], row[1]))
+    db.commit()
+fine()
+
+##############################################################################################################
+
+                                            # Login Section
 
 ##############################################################################################################
 
@@ -517,16 +540,17 @@ def password_check(password):
 
 def add_30_days(date_str):
     # Convert input date string to a datetime object
-    date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+    date_obj = datetime.strptime(date_str, "%Y/%m/%d")
 
     # Add 30 days to the datetime object
     new_date_obj = date_obj + timedelta(days=30)
 
     # Format the new date object as a string in the same format as the input
-    new_date_str = datetime.strftime(new_date_obj, "%Y-%m-%d")
+    new_date_str = datetime.strftime(new_date_obj, "%Y/%m/%d")
 
     # Return the new date string
     return new_date_str
+
 ##############################################################################################################
 
     # Create Table Section
@@ -661,27 +685,27 @@ if (identity_check == 1):
                 Remove_Author_Name = input("2. Book Author Name: ").lower().strip()
                 staffID_Query = f"SELECT id FROM staffTable WHERE mobile_number = '{list[1]}';"
                 try:
-                    print("1")
+                    # print("1")
                     cursor.execute(staffID_Query)
                     staffID_data = cursor.fetchall()
                     staffID = staffID_data[0][0]
-                    print("2")
+                    # print("2")
                     check_remove_book_query = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}' AND book_author = '{}' AND staff_id = '{}'".format(
                         Remove_Book_Name, Remove_Author_Name, staffID)
                     try:
-                        print("3")
+                        # print("3")
                         cursor.execute(check_remove_book_query)
                         check_remove_book_query_data = cursor.fetchall()
-                        print(check_remove_book_query_data[0])
+                        # print(check_remove_book_query_data[0])
                         if (check_remove_book_query_data[0][0] > 0):
-                            print("5")
+                            # print("5")
                             Remove_Book_Query = "UPDATE bookRecords SET status = '{}' WHERE book_name = '{}' AND book_author = '{}' AND staff_id = '{}' AND status= '1'".format(
                                 2, Remove_Book_Name, Remove_Author_Name, staffID)
                             try:
-                                print("6")
+                                # print("6")
                                 cursor.execute(Remove_Book_Query)
                                 db.commit()
-                                print("7")
+                                # print("7")
                             except Exception as e:
                                 print(e)
                     except Exception as e:
@@ -784,12 +808,12 @@ elif (identity_check == 2):
                                         if (book_Issue_data2[0][0] > 0):
                                             if ((int(book_Quantity) + int(book_Issue_data3[0][0]) <= book_Issue_data1[0][2])):
                                                 # print("5")
-                                                book_Issue_Querry = "UPDATE bookIssue SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}' AND status= '1';".format(
-                                                    int(book_Quantity)+int(book_Issue_data3[0][0]), book_Name, book_Author, userID)
+                                                book_Issue_Querry = "UPDATE bookIssue SET quantity = '1', status = '1' WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}' AND status= '2';".format(book_Name, book_Author, userID)
                                                 try:
                                                     cursor.execute(
                                                         book_Issue_Querry)
                                                     db.commit()
+                                                    
                                                     # cursor.execute("CREATE TRIGGER set_BookIssueDate BEFORE INSERT ON BookIssue FOR EACH ROW EXECUTE FUNCTION set_BookIssueDate()")
                                                     # # execute a CREATE FUNCTION statement to define the 'set_BookIssueDate' function that sets the value of the 'BookIssueDate' column to the current date
                                                     # cursor.execute("""
@@ -803,24 +827,7 @@ elif (identity_check == 2):
                                                     # """)
                                                     # # commit the transaction to make the changes permanent
                                                     # db.commit()
-                                                    book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND status= '1';".format(
-                                                        book_Name, book_Author)
-                                                    try:
-                                                        cursor.execute(
-                                                            book_Issue_Date)
-                                                        book_Issue_Date_Data = cursor.fetchall()
-                                                        book_Due_Date = add_30_days(
-                                                            book_Issue_Date_Data[0][0])
-                                                        book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}' AND status= '1';".format(
-                                                            book_Due_Date, book_Name, book_Author)
-                                                        try:
-                                                            cursor.execute(
-                                                                book_Due)
-                                                            db.commit
-                                                        except Exception as e:
-                                                            print(e)
-                                                    except Exception as e:
-                                                        print(e)
+                                                    
                                                 except Exception as e:
                                                     print(e)
                                             else:
@@ -862,7 +869,26 @@ elif (identity_check == 2):
                                                 #         print(e)
                                                 # except Exception as e:
                                                 #     print(e)
-
+                                                book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(book_Name, book_Author,userID)
+                                                try:
+                                                    print("1")
+                                                    cursor.execute(book_Issue_Date)
+                                                    print("2")
+                                                    book_Issue_Date_Data = cursor.fetchall()
+                                                    print("3")
+                                                    book_Due_Date = add_30_days(book_Issue_Date_Data[0][0].strftime('%Y/%m/%d'))
+                                                    print("4")
+                                                    book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(book_Due_Date, book_Name, book_Author,userID)
+                                                    try:
+                                                        print("5")
+                                                        cursor.execute(book_Due)
+                                                        print("6")
+                                                        db.commit()
+                                                        print("7")
+                                                    except Exception as e:
+                                                        print(e)
+                                                except Exception as e:
+                                                    print(e)
                                             except Exception as e:
                                                 print(e)
                                     else:

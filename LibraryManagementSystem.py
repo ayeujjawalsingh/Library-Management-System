@@ -31,11 +31,31 @@ print("\t****************************** Library Management System **************
 
 ##############################################################################################################
 
+# import datetime
+# def fine():
+#     cursor.execute('SELECT bookissuedate, duedate, fine FROM bookissue')
+#     rows = cursor.fetchall()
+#     for row in rows:
+#         duedate_str = row[1].strftime('%Y-%m-%d')
+#         duedate = datetime.datetime.strptime(duedate_str, '%Y-%m-%d').date()
+#         current_date = datetime.date.today()
+#         if current_date > duedate:
+#             days_late = (current_date - duedate).days
+#             fine = days_late * 1  # assuming a fine of Rs. 1 per day
+#         else:
+#             fine = 0
+#         cursor.execute("UPDATE bookissue SET fine=%s WHERE bookissuedate=%s AND duedate=%s", (fine, row[0], row[1]))
+#     db.commit()
+# fine()
+
 import datetime
+
 def fine():
     cursor.execute('SELECT bookissuedate, duedate, fine FROM bookissue')
     rows = cursor.fetchall()
     for row in rows:
+        if row[1] is None:
+            continue  # Skip this row and move on to the next one
         duedate_str = row[1].strftime('%Y-%m-%d')
         duedate = datetime.datetime.strptime(duedate_str, '%Y-%m-%d').date()
         current_date = datetime.date.today()
@@ -46,6 +66,7 @@ def fine():
             fine = 0
         cursor.execute("UPDATE bookissue SET fine=%s WHERE bookissuedate=%s AND duedate=%s", (fine, row[0], row[1]))
     db.commit()
+
 fine()
 
 ##############################################################################################################
@@ -538,15 +559,28 @@ def password_check(password):
     return True
 
 
-def add_30_days(date_str):
+# def add_30_days(date_str,extenddate):
+#     # Convert input date string to a datetime object
+#     date_obj = datetime.strptime(date_str, "%Y/%m/%d")
+
+#     # Add 30 days to the datetime object
+#     new_date_obj = date_obj + timedelta(days=extenddate)
+
+#     # Format the new date object as a string in the same format as the input
+#     new_date_str = datetime.strftime(new_date_obj, "%Y/%m/%d")
+
+#     # Return the new date string
+#     return new_date_str
+import datetime
+def add_30_days(date_str,extenddate):
     # Convert input date string to a datetime object
-    date_obj = datetime.strptime(date_str, "%Y/%m/%d")
+    date_obj = datetime.datetime.strptime(date_str, "%Y/%m/%d")
 
     # Add 30 days to the datetime object
-    new_date_obj = date_obj + timedelta(days=30)
+    new_date_obj = date_obj + datetime.timedelta(days=extenddate)
 
     # Format the new date object as a string in the same format as the input
-    new_date_str = datetime.strftime(new_date_obj, "%Y/%m/%d")
+    new_date_str = datetime.datetime.strftime(new_date_obj, "%Y/%m/%d")
 
     # Return the new date string
     return new_date_str
@@ -639,8 +673,59 @@ if (identity_check == 1):
                     book_Name = input("Enter book name: ").lower().strip()
                     book_Author = input("Enter book author name: ").lower().strip()
                     book_Quantity = int(input("Enter book Quantity: "))
+                    book_category = int(input("Select your book category from these given options: \n \n1. Newspaper\n2.Magzine \n3. Engineering Book \n4. Medical Book \n5. Story Book \n6. Research Paper \n7. Classical Book \n8. Rommance Book \n9. Kids Book \n10. Arts Book \n11. Thrillers Book \n12. Text Books \n13. Finance \n14. Trending Books \n Choose option: "))
+                    book_category_name = ""
+                    extend = 0
+                    if(book_category==1):
+                        book_category_name = "newspaper"
+                        extend = 1
+                    elif(book_category==2):
+                        book_category_name = "magzine"
+                        extend = 5
+                    elif(book_category==3):
+                        book_category_name = "enginnering"
+                        extend = 30
+                    elif(book_category==4):
+                        book_category_name = "medical"
+                        extend = 30
+                    elif(book_category==5):
+                        book_category_name = "story"
+                        extend = 15
+                    elif(book_category==6):
+                        book_category_name = "research paper"
+                        extend = 3
+                    elif(book_category==7):
+                        book_category_name = "classical"
+                        extend = 7
+                    elif(book_category==8):
+                        book_category_name = "rommance"
+                        extend = 7
+                    elif(book_category==9):
+                        book_category_name = "kids"
+                        extend = 7
+                    elif(book_category==10):
+                        book_category_name = "arts"
+                        extend = 7
+                    elif(book_category==11):
+                        book_category_name = "trillers"
+                        extend = 7
+                    elif(book_category==12):
+                        book_category_name = "text book"
+                        extend = 7
+                    elif(book_category==13):
+                        book_category_name = "finance"
+                        extend = 15
+                    elif(book_category==14):
+                        book_category_name = "trending book"
+                        extend = 15
+                    else:
+                        book_category_name = "Unknown"
+                        extend = 5
+                        
                     if(book_Quantity<0):
                         print("You have enter -ve quantity of books.")
+                    elif(book_category<0 and book_category!=0):
+                        print("You have enter invalid number.")
                     else:
                         book_Records_Check_Querry1 = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}';".format(
                             book_Name)
@@ -656,8 +741,8 @@ if (identity_check == 1):
                             cursor.execute(book_Records_Check_Querry3)
                             book_records_data3 = cursor.fetchall()
                             if (book_records_data1[0][0] > 0 and book_records_data3[0][0] > 0):
-                                book_Records_Querry = "UPDATE bookRecords SET quantity = '{}' WHERE book_name = '{}' AND book_author = '{}' AND status= '1';".format(
-                                    book_Quantity+book_records_data2[0][0], book_Name, book_Author)
+                                book_Records_Querry = "UPDATE bookRecords SET quantity = '{}',category = '{}' WHERE book_name = '{}' AND book_author = '{}' AND status= '1';".format(
+                                    book_Quantity+book_records_data2[0][0],book_category_name, book_Name, book_Author)
                                 try:
                                     cursor.execute(book_Records_Querry)
                                     # print("Same")
@@ -665,8 +750,8 @@ if (identity_check == 1):
                                 except Exception as e:
                                     print(e)
                             else:
-                                book_Records_Querry = "INSERT INTO bookRecords(staff_id,book_name,book_author,quantity) VALUES('{}','{}','{}','{}');".format(
-                                    staffID, book_Name, book_Author, book_Quantity)
+                                book_Records_Querry = "INSERT INTO bookRecords(staff_id,book_name,book_author,quantity,category) VALUES('{}','{}','{}','{}','{}');".format(
+                                    staffID, book_Name, book_Author, book_Quantity,book_category_name)
                                 try:
                                     cursor.execute(book_Records_Querry)
                                     db.commit()
@@ -784,7 +869,7 @@ elif (identity_check == 2):
                     elif(book_Quantity==0):
                         print("You have entered Zero quantity of book.")
                     elif(book_Quantity==1):
-                        book_Issue_Check_Querry1 = "SELECT book_name, book_author, quantity FROM bookRecords WHERE book_name = '{}' AND book_author = '{}';".format(
+                        book_Issue_Check_Querry1 = "SELECT book_name, book_author, quantity,category FROM bookRecords WHERE book_name = '{}' AND book_author = '{}';".format(
                             book_Name, book_Author)
                         book_Issue_Check_Querry2 = "SELECT COUNT(book_name) FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}';".format(
                             book_Name, book_Author, userID)
@@ -799,6 +884,7 @@ elif (identity_check == 2):
                             book_Issue_data3 = cursor.fetchall()
                             cursor.execute(book_Issue_Check_Querry1)
                             # print("1")
+                        
                             if (cursor.fetchone() is not None):
                                 # print("2")
                                 if (book_Issue_data1[0][0] == book_Name and book_Issue_data1[0][1] == book_Author):
@@ -808,12 +894,64 @@ elif (identity_check == 2):
                                         if (book_Issue_data2[0][0] > 0):
                                             if ((int(book_Quantity) + int(book_Issue_data3[0][0]) <= book_Issue_data1[0][2])):
                                                 # print("5")
+                                                book_category = book_Issue_data1[0][3]
+                                                extend = 0
+                                                if(book_category=="newspaper"):
+                                                    extend = 1
+                                                elif(book_category=="magzine"):
+                                                    extend = 5
+                                                elif(book_category=="enginnering"):
+                                                    extend = 30
+                                                elif(book_category=="medical"):
+                                                    extend = 30
+                                                elif(book_category=="story"):
+                                                    extend = 15
+                                                elif(book_category=="research paper"):
+                                                    extend = 3
+                                                elif(book_category=="classical"):
+                                                    extend = 7
+                                                elif(book_category=="rommance"):
+                                                    extend = 7
+                                                elif(book_category=="kids"):
+                                                    extend = 7
+                                                elif(book_category=="arts"):
+                                                    extend = 7
+                                                elif(book_category=="trillers"):
+                                                    extend = 7
+                                                elif(book_category=="text book"):
+                                                    extend = 7
+                                                elif(book_category=="finance"):
+                                                    extend = 15
+                                                elif(book_category=="trending book"):
+                                                    extend = 15
+                                                else:
+                                                    extend = 5
+                                                
                                                 book_Issue_Querry = "UPDATE bookIssue SET quantity = '1', status = '1' WHERE book_name = '{}' AND book_author = '{}' AND userid = '{}' AND status= '2';".format(book_Name, book_Author, userID)
                                                 try:
                                                     cursor.execute(
                                                         book_Issue_Querry)
                                                     db.commit()
-                                                    
+                                                    book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(book_Name, book_Author,userID)
+                                                    try:
+                                                        print("1")
+                                                        cursor.execute(book_Issue_Date)
+                                                        print("2")
+                                                        book_Issue_Date_Data = cursor.fetchall()
+                                                        print("3")
+                                                        book_Due_Date = add_30_days(book_Issue_Date_Data[0][0].strftime('%Y/%m/%d'),extend)
+                                                        print("4")
+                                                        book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(book_Due_Date, book_Name, book_Author,userID)
+                                                        try:
+                                                            print("5")
+                                                            cursor.execute(book_Due)
+                                                            print("6")
+                                                            db.commit()
+                                                            print("7")
+                                                        except Exception as e:
+                                                            print(e)
+                                                    except Exception as e:
+                                                        print(e)
                                                     # cursor.execute("CREATE TRIGGER set_BookIssueDate BEFORE INSERT ON BookIssue FOR EACH ROW EXECUTE FUNCTION set_BookIssueDate()")
                                                     # # execute a CREATE FUNCTION statement to define the 'set_BookIssueDate' function that sets the value of the 'BookIssueDate' column to the current date
                                                     # cursor.execute("""
@@ -869,6 +1007,39 @@ elif (identity_check == 2):
                                                 #         print(e)
                                                 # except Exception as e:
                                                 #     print(e)
+                                                book_category = book_Issue_data1[0][3]
+                                                extend = 0
+                                                if(book_category=="newspaper"):
+                                                    extend = 1
+                                                elif(book_category=="magzine"):
+                                                    extend = 5
+                                                elif(book_category=="enginnering"):
+                                                    extend = 30
+                                                elif(book_category=="medical"):
+                                                    extend = 30
+                                                elif(book_category=="story"):
+                                                    extend = 15
+                                                elif(book_category=="research paper"):
+                                                    extend = 3
+                                                elif(book_category=="classical"):
+                                                    extend = 7
+                                                elif(book_category=="rommance"):
+                                                    extend = 7
+                                                elif(book_category=="kids"):
+                                                    extend = 7
+                                                elif(book_category=="arts"):
+                                                    extend = 7
+                                                elif(book_category=="trillers"):
+                                                    extend = 7
+                                                elif(book_category=="text book"):
+                                                    extend = 7
+                                                elif(book_category=="finance"):
+                                                    extend = 15
+                                                elif(book_category=="trending book"):
+                                                    extend = 15
+                                                else:
+                                                    extend = 5
+                                                    
                                                 book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(book_Name, book_Author,userID)
                                                 try:
                                                     print("1")
@@ -876,7 +1047,7 @@ elif (identity_check == 2):
                                                     print("2")
                                                     book_Issue_Date_Data = cursor.fetchall()
                                                     print("3")
-                                                    book_Due_Date = add_30_days(book_Issue_Date_Data[0][0].strftime('%Y/%m/%d'))
+                                                    book_Due_Date = add_30_days(book_Issue_Date_Data[0][0].strftime('%Y/%m/%d'),extend)
                                                     print("4")
                                                     book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(book_Due_Date, book_Name, book_Author,userID)
                                                     try:

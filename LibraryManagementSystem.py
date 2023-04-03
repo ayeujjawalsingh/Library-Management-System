@@ -61,7 +61,7 @@ def fine():
         current_date = date.today()
         if current_date > duedate:
             days_late = (current_date - duedate).days
-            fine = days_late * 5  # assuming a fine of Rs. 1 per day
+            fine = days_late * 5  # assuming a fine of Rs. 5 per day
         else:
             fine = 0
         cursor.execute(
@@ -145,7 +145,7 @@ def login(tableName):
 
 ##############################################################################################################
 
-        # Insert & Update Section
+                                                    # Insert & Update Section
 
 ##############################################################################################################
 
@@ -562,10 +562,7 @@ def email_verification(email):
         return True
     return False
 
-# ========================================================================================================== #
-
-# Phone Number Verification
-
+# =========================================== Phone Number Verification ========================================================== #
 
 def mobile_verification(mobile):
     if (mobile == ''):
@@ -574,7 +571,7 @@ def mobile_verification(mobile):
         return True
     return False
 
-# ========================================================================================================== #
+# =============================================== Pin Code Verification =================================== #
 
 
 def pincode_verification(pin_code):
@@ -584,7 +581,7 @@ def pincode_verification(pin_code):
         return True
     return False
 
-# ========================================================================================================== #
+# ============================================ Password Verification ========================================== #
 
 
 def argon2_algo(password):
@@ -593,7 +590,7 @@ def argon2_algo(password):
     hash = ph.hash(password)
     return hash
 
-# ==========================================================================================================
+# ============================================ Validate date Of Birth =============================================
 
 
 def is_valid_dob(dob_str):
@@ -615,7 +612,9 @@ def is_valid_dob(dob_str):
         return False
 
     return True
-# ==========================================================================================================
+
+
+# ======================================== Password Check ===============================================#
 
 
 def password_check(password):
@@ -643,21 +642,9 @@ def password_check(password):
     # if all conditions are met, return True
     return True
 
+# ======================================== Add Due Date Function ===============================================
 
-# def add_30_days(date_str,extenddate):
-#     # Convert input date string to a datetime object
-#     date_obj = datetime.strptime(date_str, "%Y/%m/%d")
-
-#     # Add 30 days to the datetime object
-#     new_date_obj = date_obj + timedelta(days=extenddate)
-
-#     # Format the new date object as a string in the same format as the input
-#     new_date_str = datetime.strftime(new_date_obj, "%Y/%m/%d")
-
-#     # Return the new date string
-#     return new_date_str
-# import datetime
-def add_30_days(date_str, extenddate):
+def add_due_date(date_str, extenddate):
     # Convert input date string to a datetime object
     date_obj = datetime.strptime(date_str, "%Y/%m/%d")
 
@@ -672,7 +659,7 @@ def add_30_days(date_str, extenddate):
 
 ##############################################################################################################
 
-    # Create Table Section
+                                            # Create Table Section
 
 ##############################################################################################################
 
@@ -728,7 +715,6 @@ identity_check = int(input(
 ############################################################################################################
 
 # Create table
-
 # CREATE TABLE superadmin(id SERIAL PRIMARY KEY, first_name VARCHAR(100) NOT NULL,last_name VARCHAR(100) NOT NULL,mobile_number varchar(15) UNIQUE,email_id varchar(100) UNIQUE,password varchar(100));
 
 # Call insertsuperadmin function to add superadmin
@@ -1259,7 +1245,7 @@ elif (identity_check == 3):
                                                         print("2")
                                                         book_Issue_Date_Data = cursor.fetchall()
                                                         print("3")
-                                                        book_Due_Date = add_30_days(
+                                                        book_Due_Date = add_due_date(
                                                             book_Issue_Date_Data[0][0].strftime('%Y/%m/%d'), extend)
                                                         print("4")
                                                         book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(
@@ -1322,7 +1308,7 @@ elif (identity_check == 3):
                                                 # try:
                                                 #     cursor.execute(book_Issue_Date)
                                                 #     book_Issue_Date_Data = cursor.fetchall()
-                                                #     book_Due_Date = add_30_days(book_Issue_Date_Data[0][0])
+                                                #     book_Due_Date = add_due_date(book_Issue_Date_Data[0][0])
                                                 #     book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}';".format(book_Due_Date,book_Name, book_Author)
                                                 #     try:
                                                 #         cursor.execute(book_Due)
@@ -1373,7 +1359,7 @@ elif (identity_check == 3):
                                                     print("2")
                                                     book_Issue_Date_Data = cursor.fetchall()
                                                     print("3")
-                                                    book_Due_Date = add_30_days(
+                                                    book_Due_Date = add_due_date(
                                                         book_Issue_Date_Data[0][0].strftime('%Y/%m/%d'), extend)
                                                     print("4")
                                                     book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(

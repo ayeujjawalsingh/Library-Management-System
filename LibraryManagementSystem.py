@@ -620,23 +620,30 @@ def is_valid_dob(dob_str):
 def password_check(password):
     # check length of password
     if len(password) < 8:
+        print("Please make the password length minimum 8!!")
         return False
-
+    if ' ' in password:
+        print("Remove Space from password!!")
+        return False
     # check if password has at least one digit
     if not any(char.isdigit() for char in password):
+        print("Please add atleast one digit!!")
         return False
 
     # check if password has at least one lowercase letter
     if not any(char.islower() for char in password):
+        print("Please add atleast one lowercase letter!!")
         return False
 
     # check if password has at least one uppercase letter
     if not any(char.isupper() for char in password):
+        print("Please add atleast one uppercase letter!!")
         return False
 
     # check if password has at least one special character
     special_characters = "!@#$%^&*()_+-=[]{};:,.<>/?`~"
     if not any(char in special_characters for char in password):
+        print("Please add atleast one special character!!")
         return False
 
     # if all conditions are met, return True

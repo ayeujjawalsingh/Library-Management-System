@@ -8,6 +8,7 @@ import psycopg2
 import re
 from phonenumbers import carrier
 from phonenumbers.phonenumberutil import number_type
+import datetime as dt
 from datetime import datetime
 from datetime import date, timedelta
 from argon2 import PasswordHasher
@@ -48,8 +49,6 @@ print("\t****************************** Library Management System **************
 #     db.commit()
 # fine()
 
-import datetime
-
 def fine():
     cursor.execute('SELECT bookissuedate, duedate, fine FROM bookissue')
     rows = cursor.fetchall()
@@ -57,11 +56,11 @@ def fine():
         if row[1] is None:
             continue  # Skip this row and move on to the next one
         duedate_str = row[1].strftime('%Y-%m-%d')
-        duedate = datetime.datetime.strptime(duedate_str, '%Y-%m-%d').date()
-        current_date = datetime.date.today()
+        duedate = datetime.strptime(duedate_str, '%Y-%m-%d').date()
+        current_date = date.today()
         if current_date > duedate:
             days_late = (current_date - duedate).days
-            fine = days_late * 1  # assuming a fine of Rs. 1 per day
+            fine = days_late * 5  # assuming a fine of Rs. 1 per day
         else:
             fine = 0
         cursor.execute("UPDATE bookissue SET fine=%s WHERE bookissuedate=%s AND duedate=%s", (fine, row[0], row[1]))
@@ -315,7 +314,6 @@ def update_Password(tableName):
     else:
         print("Please choose correct option...")
     
-
 
 def insert(table_name):
 
@@ -571,16 +569,16 @@ def password_check(password):
 
 #     # Return the new date string
 #     return new_date_str
-import datetime
+# import datetime
 def add_30_days(date_str,extenddate):
     # Convert input date string to a datetime object
-    date_obj = datetime.datetime.strptime(date_str, "%Y/%m/%d")
+    date_obj = datetime.strptime(date_str, "%Y/%m/%d")
 
     # Add 30 days to the datetime object
-    new_date_obj = date_obj + datetime.timedelta(days=extenddate)
+    new_date_obj = date_obj + timedelta(days=extenddate)
 
     # Format the new date object as a string in the same format as the input
-    new_date_str = datetime.datetime.strftime(new_date_obj, "%Y/%m/%d")
+    new_date_str = datetime.strftime(new_date_obj, "%Y/%m/%d")
 
     # Return the new date string
     return new_date_str

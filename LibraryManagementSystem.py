@@ -736,7 +736,7 @@ identity_check = int(input(
 
 # Add User and Staff
 if(identity_check==1):
-    superadmin_option = int(input("\n Add acccount and check status of books \n 1. Add Staff \n 2. Add User \n 3. Add Book \n 4. Remove Book \n 5. Remove Staff \n 6. Remove User \n 7. Check Status of all the books \n 8. Check Status according to user \n \n Select: "))
+    superadmin_option = int(input("\n Add acccount and check status of books \n 1. Add Staff \n 2. Add User \n 3. Add Book \n 4. Remove Book \n 5. Remove Staff \n 6. Remove User \n 7. Check Status of all the staff \n 8. Check Status according to user \n \n Select: "))
     if (superadmin_option == 1):
         print("\n Add Staff \n")
         staff = "staffTable"

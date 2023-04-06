@@ -211,51 +211,75 @@ def update_Password(tableName):
         elif (option_password == 2):
             print("Update Password Using Mobile Number : ")
             mobile_number = input("Mobile Number : ")
-            update_query_mobile = "SELECT COUNT(mobile_number) FROM {} WHERE mobile_number = '{}';".format(
-                tableName, mobile_number)
+            update_query_mobile = "SELECT COUNT(mobile_number) FROM {} WHERE mobile_number = '{}';".format(tableName, mobile_number)
             try:
+                # print("1")
                 cursor.execute(update_query_mobile)
+                # print("2")
                 mobile_number_data = cursor.fetchall()
+                # print("3")
                 if (mobile_number_data[0][0] > 0):
-                    mob_dob = input("Enter your Date of Birth (DD/MM/YYYY) : ")
-                    mob_dob_query = "SELECT date_of_birth FROM {} WHERE mobile_number = '{}';".format(
-                        tableName, mobile_number)
+                    # print("4")
+                    pass_query = "SELECT password FROM {} WHERE mobile_number = '{}';".format(tableName, mobile_number)
                     try:
-                        cursor.execute(mob_dob_query)
-                        mob_dob_data = cursor.fetchall()
-                        if (mob_dob_data[0][0] == mob_dob):
-                            dummy = True
-                            mob_password1 = ''
-                            while (dummy):
-                                mob_password1 = input("New Password : ")
-                                mob_password2 = input("Confirm Password : ")
-                                if (mob_password1 == mob_password2):
-                                    if (mob_password1 == ''):
-                                        print("Please Write your Password")
-                                        dummy = True
-                                    elif (password_check(mob_password1)):
-                                        mob_encrypt_new_password = argon2_algo(
-                                            mob_password1)
-                                        mob_pass_query = "UPDATE {} SET password = '{}' WHERE mobile_number = '{}' AND date_of_birth = '{}';".format(
-                                            tableName, mob_encrypt_new_password, mobile_number_data[0][0], mob_dob)
-                                        try:
-                                            cursor.execute(mob_pass_query)
-                                            db.commit()
-                                            print("Successful")
-                                        except Exception as e:
-                                            print("Error!!")
-                                        dummy = False
+                        # print("5")
+                        cursor.execute(pass_query)
+                        old_password_data = cursor.fetchall()
+                        ph = PasswordHasher()
+                        mob_dob = input("Enter your Date of Birth (DD/MM/YYYY) : ")
+                        mob_dob_query = "SELECT date_of_birth FROM {} WHERE mobile_number = '{}';".format(
+                            tableName, mobile_number)
+                        try:
+                            cursor.execute(mob_dob_query)
+                            mob_dob_data = cursor.fetchall()
+                            if (mob_dob_data[0][0] == mob_dob):
+                                dummy = True
+                                mob_password1 = ''
+                                while (dummy):
+                                    mob_password1 = input("New Password : ")
+                                    # try:
+                                    #     if (ph.verify(old_password_data[0][0], mob_password1)):
+                                    #         print("Password is same please try again!!!")
+                                    #         dummy = False
+                                    #         break
+                                    #     else:
+                                    #         print("Hello")
+                                    # except Exception as e:
+                                    #     print("Password differ")
+                                    # else:
+                                    #     print("Hello232")
+                                    
+                                        
+                                    mob_password2 = input("Confirm Password : ")
+                                    if (mob_password1 == mob_password2):
+                                        if (mob_password1 == ''):
+                                            print("Please Write your Password")
+                                            dummy = True
+                                        elif (password_check(mob_password1)):
+                                            mob_encrypt_new_password = argon2_algo(
+                                                mob_password1)
+                                            mob_pass_query = "UPDATE {} SET password = '{}' WHERE mobile_number = '{}' AND date_of_birth = '{}';".format(
+                                                tableName, mob_encrypt_new_password, mobile_number_data[0][0], mob_dob)
+                                            try:
+                                                cursor.execute(mob_pass_query)
+                                                db.commit()
+                                                print("Successful")
+                                            except Exception as e:
+                                                print("Error!!")
+                                            dummy = False
+                                        else:
+                                            dummy = True
                                     else:
-                                        dummy = True
-                                else:
-                                    print(
-                                        "Your new password and confirm password are not same..")
-                        else:
-                            print("Wrong Password!")
+                                        print(
+                                            "Your new password and confirm password are not same..")
+                            else:
+                                print("Wrong Password!")
+                        except Exception as e:
+                            print(e)
                     except Exception as e:
                         print(e)
                 else:
-                    print("Wrong Email")
+                    print("Wrong Mobile Number")
             except Exception as e:
                 print("Error")
 
@@ -281,6 +305,10 @@ def update_Password(tableName):
                             dummy = True
                             while (dummy):
                                 password1 = input("New Password : ")
+                                if(password1==password_login):
+                                    print("Your Old Password and New Password is same.")
+                                    dummy = False
+                                    break
                                 password2 = input("Confirm Password : ")
                                 if (password1 == password2):
                                     if (password1 == ''):
@@ -312,11 +340,12 @@ def update_Password(tableName):
             except Exception as e:
                 print("Error")
 
-    elif (ans == 'N' | ans == 'n'):
+    elif (ans == 'N' or ans == 'n'):
         print("Good Habbit!! Don't Forget Your Password")
     else:
         print("Please choose correct option...")
 
+# =========================================== Insert Section for Staff & User =========================================
 
 def insert(table_name):
 

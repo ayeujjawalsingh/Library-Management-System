@@ -11,7 +11,7 @@
 <hr>
 <h2 align="center">Description of Library Management System</h2>
 
-```text
+<p>
 In this project has three interfaces - one for the superuser, one for the staff, and another for the users. The purpose of the system is to enable all the operations performed in a physical library to be performed in a virtual environment. The system is written in Python and uses PostgreSQL for database operations.
 
 I have used the ARGON2 hashing technique to store passwords in an encrypted format, which is a good security measure to protect user data. This ensures that even if someone gains access to the database, they will not be able to read the passwords in plain text format.
@@ -25,7 +25,7 @@ Users can create their own accounts, or they can be created by the superadmin, g
 The users have the ability to update their account information and reset their passwords if they forget them. This ensures that users can always access their accounts and their borrowed books without any issues.
 
 Users can borrow books from the library and then return them within a certain due date. If they fail to return the book on time, they will be charged a fine based on the book's category and the number of days overdue. This encourages users to return the books on time, and it also helps the library maintain its inventory.
-```
+</p>
 <hr>
 
 ```

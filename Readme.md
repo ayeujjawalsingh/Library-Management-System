@@ -26,7 +26,7 @@ The users have the ability to update their account information and reset their p
 
 Users can borrow books from the library and then return them within a certain due date. If they fail to return the book on time, they will be charged a fine based on the book's category and the number of days overdue. This encourages users to return the books on time, and it also helps the library maintain its inventory.
 </p>
-<hr>
+<!-- <hr> -->
 
 <!-- <p>
 In this Library Management System project, I have implemented a login system with three user types: super admin, staff, and user.

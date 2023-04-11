@@ -56,24 +56,24 @@ When logged in as a super admin, the system displays a menu with seven options.
 
 ## 2. Staff Section
 
-```
+<p>
 When logged in as a staff member, the system displays a menu with three options.
 
-1.Add: This option allows the staff member to add a new book to the library. The staff member can enter details about the book, such as the title, author name, and quantity of the book.
+1. Add: This option allows the staff member to add a new book to the library. The staff member can enter details about the book, such as the title, author name, and quantity of the book.
  
-2.Remove: This option allows the staff member to remove a book from the library. The staff member can search for a book by its title and remove it from the system.
+2. Remove: This option allows the staff member to remove a book from the library. The staff member can search for a book by its title and remove it from the system.
  
-3.Status: This option allows the staff member to check their status in the system, such as the number of books they have added.
-```
+3. Status: This option allows the staff member to check their status in the system, such as the number of books they have added.
+</p>
 
 ## 3. User Section
 
-```
+<p>
 When logged in as a user, the system displays a menu with three options.
 
-1.Book Issue: This option allows the user to issue a book from the library. The user can search for a book by its title and author name and issue it for a certain period.
+1. Book Issue: This option allows the user to issue a book from the library. The user can search for a book by its title and author name and issue it for a certain period.
  
-2.Return Book: This option allows the user to return a book to the library. The user can search for a book by its title and author name and return it to the library.
+2. Return Book: This option allows the user to return a book to the library. The user can search for a book by its title and author name and return it to the library.
  
-3.Status: This option allows the user to check their status in the system, such as the number of books they have issued, returned, and fined.
-```
+3. Status: This option allows the user to check their status in the system, such as the number of books they have issued, returned, and fined.
+</p>

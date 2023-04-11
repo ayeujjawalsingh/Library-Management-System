@@ -41,7 +41,7 @@ When logged in as a super admin, the system displays a menu with seven options.
  
 2. Add User: This option allows the super admin to add a new user to the system. The super admin can enter the user's details, such as name, email, and password.
  
-3. Add Book: This option allows the super admin to add a new book to the library. The super admin can enter details about the book, such as the title, author, and ISBN.
+3. Add Book: This option allows the super admin to add a new book to the library. The super admin can enter details about the book, such as the title, author.
  
 4. Remove Book: This option allows the Super Admin to remove a book from the library. The Super Admin can search for a book by its title or ISBN and remove it from the system.
  

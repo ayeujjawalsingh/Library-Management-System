@@ -32,23 +32,6 @@ print("\t****************************** Library Management System **************
 
 ##############################################################################################################
 
-# import datetime
-# def fine():
-#     cursor.execute('SELECT bookissuedate, duedate, fine FROM bookissue')
-#     rows = cursor.fetchall()
-#     for row in rows:
-#         duedate_str = row[1].strftime('%Y-%m-%d')
-#         duedate = datetime.datetime.strptime(duedate_str, '%Y-%m-%d').date()
-#         current_date = datetime.date.today()
-#         if current_date > duedate:
-#             days_late = (current_date - duedate).days
-#             fine = days_late * 1  # assuming a fine of Rs. 1 per day
-#         else:
-#             fine = 0
-#         cursor.execute("UPDATE bookissue SET fine=%s WHERE bookissuedate=%s AND duedate=%s", (fine, row[0], row[1]))
-#     db.commit()
-# fine()
-
 
 def fine():
     cursor.execute('SELECT bookissuedate, duedate, fine FROM bookissue')
@@ -1343,33 +1326,7 @@ elif (identity_check == 3):
                                                 cursor.execute(
                                                     book_Issue_Querry)
                                                 db.commit()
-                                                # cursor.execute("CREATE TRIGGER set_BookIssueDate BEFORE INSERT ON BookIssue FOR EACH ROW EXECUTE FUNCTION set_BookIssueDate()")
-                                                # # execute a CREATE FUNCTION statement to define the 'set_BookIssueDate' function that sets the value of the 'BookIssueDate' column to the current date
-                                                # cursor.execute("""
-                                                # CREATE OR REPLACE FUNCTION set_BookIssueDate()
-                                                # RETURNS TRIGGER AS $$
-                                                # BEGIN
-                                                #     NEW.BookIssueDate := CURRENT_DATE;
-                                                #     RETURN NEW;
-                                                # END;
-                                                # $$ LANGUAGE plpgsql;
-                                                # """)
-                                                # # commit the transaction to make the changes permanent
-                                                # db.commit()
-
-                                                # book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}';".format(book_Name, book_Author)
-                                                # try:
-                                                #     cursor.execute(book_Issue_Date)
-                                                #     book_Issue_Date_Data = cursor.fetchall()
-                                                #     book_Due_Date = add_due_date(book_Issue_Date_Data[0][0])
-                                                #     book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}';".format(book_Due_Date,book_Name, book_Author)
-                                                #     try:
-                                                #         cursor.execute(book_Due)
-                                                #         db.commit
-                                                #     except Exception as e:
-                                                #         print(e)
-                                                # except Exception as e:
-                                                #     print(e)
+                                                
                                                 book_category = book_Issue_data1[0][3]
                                                 extend = 0
                                                 if (book_category == "newspaper"):

@@ -13,7 +13,7 @@ from datetime import datetime
 from datetime import date, timedelta
 from argon2 import PasswordHasher
 from prettytable import PrettyTable
-
+# import argon2.exceptions.VerificationError
 # Establishing the connection
 db = psycopg2.connect(
     database="LibraryManagementSystem",
@@ -168,38 +168,53 @@ def update_Password(tableName):
                 if (email_id_data > 0):
                     email_dob = input(
                         "Enter your Date of Birth (DD/MM/YYYY) : ")
-                    email_dob_query = f"SELECT date_of_birth FROM {tableName} WHERE email_id = '{email_id}';"
+                    pass_query = "SELECT password FROM {} WHERE email_id = '{}';".format(tableName, email_id)
                     try:
-                        cursor.execute(email_dob_query)
-                        email_dob_data = cursor.fetchall()
-                        if (email_dob_data[0][0] == email_dob):
-                            dummy = True
-                            email_password1 = ''
-                            while (dummy):
-                                email_password1 = input("New Password : ")
-                                email_password2 = input("Confirm Password : ")
-                                if (email_password1 == email_password2):
-                                    if (email_password1 == ''):
-                                        print("Please Write your Password")
-                                        dummy = True
-                                    elif (password_check(email_password1)):
-                                        email_encrypt_new_password = argon2_algo(
-                                            email_password1)
-                                        email_pass_query = f"UPDATE {tableName} SET password = '{email_encrypt_new_password}' WHERE email_id = '{email_id}' AND date_of_birth = '{email_dob}';"
-                                        try:
-                                            cursor.execute(email_pass_query)
-                                            db.commit()
-                                            print("Successful")
-                                        except Exception as e:
-                                            print("Error!!")
-                                        dummy = False
+                        cursor.execute(pass_query)
+                        old_password_data = cursor.fetchall()
+                        ph = PasswordHasher()
+                        email_dob_query = f"SELECT date_of_birth FROM {tableName} WHERE email_id = '{email_id}';"
+                        try:
+                            cursor.execute(email_dob_query)
+                            email_dob_data = cursor.fetchall()
+                            if (email_dob_data[0][0] == email_dob):
+                                dummy = True
+                                email_password1 = ''
+                                while (dummy):
+                                    email_password1 = input("New Password : ")
+                                    try:
+                                        if (ph.verify(old_password_data[0][0], email_password1)):
+                                            print("Password is same please try again!!!")
+                                            dummy = False
+                                            break
+                                    except Exception as e:
+                                        # print(e)
+                                        pass
+                                    email_password2 = input("Confirm Password : ")
+                                    if (email_password1 == email_password2):
+                                        if (email_password1 == ''):
+                                            print("Please Write your Password")
+                                            dummy = True
+                                        elif (password_check(email_password1)):
+                                            email_encrypt_new_password = argon2_algo(
+                                                email_password1)
+                                            email_pass_query = f"UPDATE {tableName} SET password = '{email_encrypt_new_password}' WHERE email_id = '{email_id}' AND date_of_birth = '{email_dob}';"
+                                            try:
+                                                cursor.execute(email_pass_query)
+                                                db.commit()
+                                                print("Successful")
+                                            except Exception as e:
+                                                print("Error!!")
+                                            dummy = False
+                                        else:
+                                            dummy = True
                                     else:
-                                        dummy = True
-                                else:
-                                    print(
-                                        "Your new password and confirm password are not same..")
-                        else:
-                            print("Wrong DOB!")
+                                        print(
+                                            "Your new password and confirm password are not same..")
+                            else:
+                                print("Wrong DOB!")
+                        except Exception as e:
+                            print(e)
                     except Exception as e:
                         print(e)
                 else:
@@ -237,17 +252,14 @@ def update_Password(tableName):
                                 mob_password1 = ''
                                 while (dummy):
                                     mob_password1 = input("New Password : ")
-                                    # try:
-                                    #     if (ph.verify(old_password_data[0][0], mob_password1)):
-                                    #         print("Password is same please try again!!!")
-                                    #         dummy = False
-                                    #         break
-                                    #     else:
-                                    #         print("Hello")
-                                    # except Exception as e:
-                                    #     print("Password differ")
-                                    # else:
-                                    #     print("Hello232")
+                                    try:
+                                        if (ph.verify(old_password_data[0][0], mob_password1)):
+                                            print("Password is same please try again!!!")
+                                            dummy = False
+                                            break
+                                    except Exception as e:
+                                        # print(e)
+                                        pass
                                     
                                         
                                     mob_password2 = input("Confirm Password : ")
@@ -259,10 +271,12 @@ def update_Password(tableName):
                                             mob_encrypt_new_password = argon2_algo(
                                                 mob_password1)
                                             mob_pass_query = "UPDATE {} SET password = '{}' WHERE mobile_number = '{}' AND date_of_birth = '{}';".format(
-                                                tableName, mob_encrypt_new_password, mobile_number_data[0][0], mob_dob)
+                                                tableName, mob_encrypt_new_password, mobile_number, mob_dob)
+                                            # print(mob_pass_query)
                                             try:
                                                 cursor.execute(mob_pass_query)
                                                 db.commit()
+                                                
                                                 print("Successful")
                                             except Exception as e:
                                                 print("Error!!")
@@ -758,213 +772,216 @@ identity_check = int(input(
 
 # Add User and Staff
 if(identity_check==1):
-    superadmin_option = int(input("\n Add acccount and check status of books \n 1. Add Staff \n 2. Add User \n 3. Add Book \n 4. Remove Book \n 5. Remove Staff \n 6. Remove User \n 7. Check Status of all the staff \n 8. Check Status according to user \n \n Select: "))
-    if (superadmin_option == 1):
-        print("\n Add Staff \n")
-        staff = "staffTable"
-        insert(staff)
-    elif (superadmin_option == 2):
-        print("\n Add User \n")
-        user = "userTable"
-        insert(user)
-    elif (superadmin_option == 3):
-        print("\n Add Book \n")
-        admin_status_Query = f"SELECT book_name,book_author,quantity FROM bookrecords where status= '1';"
-        try:
-            cursor.execute(admin_status_Query)
-            # fetch all rows of data from the SELECT statement
-            rows = cursor.fetchall()
-            # create a PrettyTable object and set the column names
-            table = PrettyTable(['Book Name', 'Book Author', 'Quantity'])
-            # iterate through the rows of data and add them to the table
-            for row in rows:
-                table.add_row(row)
-            # print the table
-            print(table)
-        except Exception as e:
-            print(e)
-
-
-        book_Name = input("\nEnter book name: ").lower().strip()
-        book_Author = input("Enter book author name: ").lower().strip()
-        book_Quantity = int(input("Enter book Quantity: "))
-        book_category = int(input("Select your book category from these given options: \n \n1. Newspaper\n2. Magzine \n3. Engineering Book \n4. Medical Book \n5. Story Book \n6. Research Paper \n7. Classical Book \n8. Rommance Book \n9. Kids Book \n10. Arts Book \n11. Thrillers Book \n12. Text Books \n13. Finance \n14. Trending Books \n\nChoose option: "))
-        book_category_name = ""
-        extend = 0
-        if (book_category == 1):
-            book_category_name = "newspaper"
-            extend = 1
-        elif (book_category == 2):
-            book_category_name = "magzine"
-            extend = 5
-        elif (book_category == 3):
-            book_category_name = "enginnering"
-            extend = 30
-        elif (book_category == 4):
-            book_category_name = "medical"
-            extend = 30
-        elif (book_category == 5):
-            book_category_name = "story"
-            extend = 15
-        elif (book_category == 6):
-            book_category_name = "research paper"
-            extend = 3
-        elif (book_category == 7):
-            book_category_name = "classical"
-            extend = 7
-        elif (book_category == 8):
-            book_category_name = "rommance"
-            extend = 7
-        elif (book_category == 9):
-            book_category_name = "kids"
-            extend = 7
-        elif (book_category == 10):
-            book_category_name = "arts"
-            extend = 7
-        elif (book_category == 11):
-            book_category_name = "trillers"
-            extend = 7
-        elif (book_category == 12):
-            book_category_name = "text book"
-            extend = 7
-        elif (book_category == 13):
-            book_category_name = "finance"
-            extend = 15
-        elif (book_category == 14):
-            book_category_name = "trending book"
-            extend = 15
-        else:
-            book_category_name = "Unknown"
-            extend = 5
-        if (book_Quantity < 0):
-            print("You have enter -ve quantity of books.")
-        elif (book_category < 0 and book_category != 0):
-            print("You have enter invalid number.")
-        else:
-            book_Records_Check_Querry1 = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}';".format(
-                                    book_Name)
-            book_Records_Check_Querry2 = "SELECT quantity FROM bookRecords WHERE book_name = '{}';".format(
-                                    book_Name)
-            book_Records_Check_Querry3 = "SELECT COUNT(book_author) FROM bookRecords WHERE book_author = '{}';".format(
-                                    book_Author)
+    superadmin = "superadmin"
+    list = login(superadmin)
+    if (list[0] == "1"):
+        superadmin_option = int(input("\n Add acccount and check status of books \n 1. Add Staff \n 2. Add User \n 3. Add Book \n 4. Remove Book \n 5. Remove Staff \n 6. Remove User \n 7. Check Status of particular staff \n 8. Check Status according to user \n \n Select: "))
+        if (superadmin_option == 1):
+            print("\n Add Staff \n")
+            staff = "staffTable"
+            insert(staff)
+        elif (superadmin_option == 2):
+            print("\n Add User \n")
+            user = "userTable"
+            insert(user)
+        elif (superadmin_option == 3):
+            print("\n Add Book \n")
+            admin_status_Query = f"SELECT book_name,book_author,quantity FROM bookrecords where status= '1';"
             try:
-                cursor.execute(book_Records_Check_Querry1)
-                book_records_data1 = cursor.fetchall()
-                cursor.execute(book_Records_Check_Querry2)
-                book_records_data2 = cursor.fetchall()
-                cursor.execute(book_Records_Check_Querry3)
-                book_records_data3 = cursor.fetchall()
-                if (book_records_data1[0][0] > 0 and book_records_data3[0][0] > 0):
-                    book_Records_Querry = "UPDATE bookRecords SET quantity = '{}',category = '{}' WHERE book_name = '{}' AND book_author = '{}' AND status= '1';".format(
-                                                book_Quantity+book_records_data2[0][0], book_category_name, book_Name, book_Author)
+                cursor.execute(admin_status_Query)
+                # fetch all rows of data from the SELECT statement
+                rows = cursor.fetchall()
+                # create a PrettyTable object and set the column names
+                table = PrettyTable(['Book Name', 'Book Author', 'Quantity'])
+                # iterate through the rows of data and add them to the table
+                for row in rows:
+                    table.add_row(row)
+                # print the table
+                print(table)
+            except Exception as e:
+                print(e)
+
+
+            book_Name = input("\nEnter book name: ").lower().strip()
+            book_Author = input("Enter book author name: ").lower().strip()
+            book_Quantity = int(input("Enter book Quantity: "))
+            book_category = int(input("Select your book category from these given options: \n \n1. Newspaper\n2. Magzine \n3. Engineering Book \n4. Medical Book \n5. Story Book \n6. Research Paper \n7. Classical Book \n8. Rommance Book \n9. Kids Book \n10. Arts Book \n11. Thrillers Book \n12. Text Books \n13. Finance \n14. Trending Books \n\nChoose option: "))
+            book_category_name = ""
+            extend = 0
+            if (book_category == 1):
+                book_category_name = "newspaper"
+                extend = 1
+            elif (book_category == 2):
+                book_category_name = "magzine"
+                extend = 5
+            elif (book_category == 3):
+                book_category_name = "enginnering"
+                extend = 30
+            elif (book_category == 4):
+                book_category_name = "medical"
+                extend = 30
+            elif (book_category == 5):
+                book_category_name = "story"
+                extend = 15
+            elif (book_category == 6):
+                book_category_name = "research paper"
+                extend = 3
+            elif (book_category == 7):
+                book_category_name = "classical"
+                extend = 7
+            elif (book_category == 8):
+                book_category_name = "rommance"
+                extend = 7
+            elif (book_category == 9):
+                book_category_name = "kids"
+                extend = 7
+            elif (book_category == 10):
+                book_category_name = "arts"
+                extend = 7
+            elif (book_category == 11):
+                book_category_name = "trillers"
+                extend = 7
+            elif (book_category == 12):
+                book_category_name = "text book"
+                extend = 7
+            elif (book_category == 13):
+                book_category_name = "finance"
+                extend = 15
+            elif (book_category == 14):
+                book_category_name = "trending book"
+                extend = 15
+            else:
+                book_category_name = "Unknown"
+                extend = 5
+            if (book_Quantity < 0):
+                print("You have enter -ve quantity of books.")
+            elif (book_category < 0 and book_category != 0):
+                print("You have enter invalid number.")
+            else:
+                book_Records_Check_Querry1 = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}';".format(
+                                        book_Name)
+                book_Records_Check_Querry2 = "SELECT quantity FROM bookRecords WHERE book_name = '{}';".format(
+                                        book_Name)
+                book_Records_Check_Querry3 = "SELECT COUNT(book_author) FROM bookRecords WHERE book_author = '{}';".format(
+                                        book_Author)
+                try:
+                    cursor.execute(book_Records_Check_Querry1)
+                    book_records_data1 = cursor.fetchall()
+                    cursor.execute(book_Records_Check_Querry2)
+                    book_records_data2 = cursor.fetchall()
+                    cursor.execute(book_Records_Check_Querry3)
+                    book_records_data3 = cursor.fetchall()
+                    if (book_records_data1[0][0] > 0 and book_records_data3[0][0] > 0):
+                        book_Records_Querry = "UPDATE bookRecords SET quantity = '{}',category = '{}' WHERE book_name = '{}' AND book_author = '{}' AND status= '1';".format(
+                                                    book_Quantity+book_records_data2[0][0], book_category_name, book_Name, book_Author)
+                        try:
+                            cursor.execute(book_Records_Querry)
+                            # print("Same")
+                            db.commit()
+                        except Exception as e:
+                            print(e)
+                    else:
+                        book_Records_Querry = "INSERT INTO bookRecords(staff_id,book_name,book_author,quantity,category) VALUES('{}','{}','{}','{}','{}');".format(
+                                                    0, book_Name, book_Author, book_Quantity, book_category_name)
+                        try:
+                            cursor.execute(book_Records_Querry)
+                            db.commit()
+                            # print(book_Name)
+                            # print("Differ")
+                        except Exception as e:
+                            print(e)
+                except Exception as e:
+                    print(e)
+
+        elif (superadmin_option == 4):
+            print("\n Remove Book \n")
+            Remove_Book_Name = input("Enter Book Name and Author Name that you want to remove \n1. Book Name: ").lower().strip()
+            Remove_Author_Name = input("2. Book Author Name: ").lower().strip()
+            check_remove_book_query = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}' AND book_author = '{}' AND status = '1'".format(Remove_Book_Name, Remove_Author_Name)
+            try:
+                # print("3")
+                cursor.execute(check_remove_book_query)
+                check_remove_book_query_data = cursor.fetchall()
+                # print(check_remove_book_query_data[0])
+                if (check_remove_book_query_data[0][0] > 0):
+                    # print("5")
+                    Remove_Book_Query = "UPDATE bookRecords SET status = '{}' WHERE book_name = '{}' AND book_author = '{}' AND status= '1'".format(2, Remove_Book_Name, Remove_Author_Name)
                     try:
-                        cursor.execute(book_Records_Querry)
-                        # print("Same")
+                        # print("6")
+                        cursor.execute(Remove_Book_Query)
                         db.commit()
-                    except Exception as e:
-                        print(e)
-                else:
-                    book_Records_Querry = "INSERT INTO bookRecords(staff_id,book_name,book_author,quantity,category) VALUES('{}','{}','{}','{}','{}');".format(
-                                                0, book_Name, book_Author, book_Quantity, book_category_name)
-                    try:
-                        cursor.execute(book_Records_Querry)
-                        db.commit()
-                        # print(book_Name)
-                        # print("Differ")
+                        print("Remove Book from library.")
                     except Exception as e:
                         print(e)
             except Exception as e:
                 print(e)
-
-    elif (superadmin_option == 4):
-        print("\n Remove Book \n")
-        Remove_Book_Name = input("Enter Book Name and Author Name that you want to remove \n1. Book Name: ").lower().strip()
-        Remove_Author_Name = input("2. Book Author Name: ").lower().strip()
-        check_remove_book_query = "SELECT COUNT(book_name) FROM bookRecords WHERE book_name = '{}' AND book_author = '{}' AND status = '1'".format(Remove_Book_Name, Remove_Author_Name)
-        try:
-            # print("3")
-            cursor.execute(check_remove_book_query)
-            check_remove_book_query_data = cursor.fetchall()
-            # print(check_remove_book_query_data[0])
-            if (check_remove_book_query_data[0][0] > 0):
-                # print("5")
-                Remove_Book_Query = "UPDATE bookRecords SET status = '{}' WHERE book_name = '{}' AND book_author = '{}' AND status= '1'".format(2, Remove_Book_Name, Remove_Author_Name)
-                try:
-                    # print("6")
-                    cursor.execute(Remove_Book_Query)
-                    db.commit()
-                    print("Remove Book from library.")
-                except Exception as e:
-                    print(e)
-        except Exception as e:
-            print(e)
-    
-    elif (superadmin_option == 5):
-        print("\n remove Staff \n")
-        Remove_Staff_Mobile = input("Enter Staff mobile number:  ").strip()
-        Remove_Staff_Query = "UPDATE stafftable SET status = '{}' WHERE mobile_number = '{}' AND status= '1'".format(
-            2, Remove_Staff_Mobile)
-        try:
-            cursor.execute(Remove_Staff_Query)
-            db.commit()
-            print("Removed Staff!!")
-        except Exception as e:
-            print(e)
-    elif (superadmin_option == 6):
-        print("\n Remove User \n")
-        Remove_User_Mobile = input("Enter user mobile number:  ").strip()
-        Remove_User_Query = "UPDATE usertable SET status = '{}' WHERE mobile_number = '{}' AND status= '1'".format(
-            2, Remove_User_Mobile)
-        try:
-            cursor.execute(Remove_User_Query)
-            db.commit()
-            print("Removed User!!")
-        except Exception as e:
-            print(e)
-    elif(superadmin_option==7):
-        print("\n Check Status of particular Staff \n")
-        staff_mobile = input("Enter Staff Mobile number: ")
-        staff_status_Query = f"SELECT id FROM staffTable WHERE mobile_number = '{staff_mobile}';"
-        try:
-            cursor.execute(staff_status_Query)
-            staff_status_data = cursor.fetchall()
-            staff_status_UserID = staff_status_data[0][0]
-            sta_Query = f"SELECT book_name,book_author,quantity FROM bookrecords WHERE staff_id = '{staff_status_UserID}' AND status = '1';"
-            cursor.execute(sta_Query)
-            # fetch all rows of data from the SELECT statement
-            rows = cursor.fetchall()
-            # create a PrettyTable object and set the column names
-            table = PrettyTable(['Book Name', 'Book Author', 'Quantity'])
-            # iterate through the rows of data and add them to the table
-            for row in rows:
-                table.add_row(row)
-            # print the table
-            print(table)
-        except Exception as e:
-            print(e)
-    elif (superadmin_option == 8):
-        print("\n Check Status of particular User \n")
-        user_mobile = input("Enter user Mobile number: ")
-        user_status_Query = f"SELECT id FROM userTable WHERE mobile_number = '{user_mobile}';"
-        try:
-            cursor.execute(user_status_Query)
-            user_status_data = cursor.fetchall()
-            user_status_UserID = user_status_data[0][0]
-            user_Query = f"SELECT book_name,book_author,quantity,fine,duedate,bookissuedate FROM bookIssue WHERE userid = '{user_status_UserID}' AND status = '1';"
-            cursor.execute(user_Query)
-            # fetch all rows of data from the SELECT statement
-            rows = cursor.fetchall()
-            # create a PrettyTable object and set the column names
-            table = PrettyTable(['Book Name', 'Book Author', 'Quantity','Fine', 'Due Date', 'Book Issue Date'])
-            # iterate through the rows of data and add them to the table
-            for row in rows:
-                table.add_row(row)
-            # print the table
-            print(table)
-        except Exception as e:
-            print(e)
-    else:
-        print("You have enter wrong option")
+        
+        elif (superadmin_option == 5):
+            print("\n remove Staff \n")
+            Remove_Staff_Mobile = input("Enter Staff mobile number:  ").strip()
+            Remove_Staff_Query = "UPDATE stafftable SET status = '{}' WHERE mobile_number = '{}' AND status= '1'".format(
+                2, Remove_Staff_Mobile)
+            try:
+                cursor.execute(Remove_Staff_Query)
+                db.commit()
+                print("Removed Staff!!")
+            except Exception as e:
+                print(e)
+        elif (superadmin_option == 6):
+            print("\n Remove User \n")
+            Remove_User_Mobile = input("Enter user mobile number:  ").strip()
+            Remove_User_Query = "UPDATE usertable SET status = '{}' WHERE mobile_number = '{}' AND status= '1'".format(
+                2, Remove_User_Mobile)
+            try:
+                cursor.execute(Remove_User_Query)
+                db.commit()
+                print("Removed User!!")
+            except Exception as e:
+                print(e)
+        elif(superadmin_option==7):
+            print("\n Check Status of particular Staff \n")
+            staff_mobile = input("Enter Staff Mobile number: ")
+            staff_status_Query = f"SELECT id FROM staffTable WHERE mobile_number = '{staff_mobile}';"
+            try:
+                cursor.execute(staff_status_Query)
+                staff_status_data = cursor.fetchall()
+                staff_status_UserID = staff_status_data[0][0]
+                sta_Query = f"SELECT book_name,book_author,quantity FROM bookrecords WHERE staff_id = '{staff_status_UserID}' AND status = '1';"
+                cursor.execute(sta_Query)
+                # fetch all rows of data from the SELECT statement
+                rows = cursor.fetchall()
+                # create a PrettyTable object and set the column names
+                table = PrettyTable(['Book Name', 'Book Author', 'Quantity'])
+                # iterate through the rows of data and add them to the table
+                for row in rows:
+                    table.add_row(row)
+                # print the table
+                print(table)
+            except Exception as e:
+                print(e)
+        elif (superadmin_option == 8):
+            print("\n Check Status of particular User \n")
+            user_mobile = input("Enter user Mobile number: ")
+            user_status_Query = f"SELECT id FROM userTable WHERE mobile_number = '{user_mobile}';"
+            try:
+                cursor.execute(user_status_Query)
+                user_status_data = cursor.fetchall()
+                user_status_UserID = user_status_data[0][0]
+                user_Query = f"SELECT book_name,book_author,quantity,fine,duedate,bookissuedate FROM bookIssue WHERE userid = '{user_status_UserID}' AND status = '1';"
+                cursor.execute(user_Query)
+                # fetch all rows of data from the SELECT statement
+                rows = cursor.fetchall()
+                # create a PrettyTable object and set the column names
+                table = PrettyTable(['Book Name', 'Book Author', 'Quantity','Fine', 'Due Date', 'Book Issue Date'])
+                # iterate through the rows of data and add them to the table
+                for row in rows:
+                    table.add_row(row)
+                # print the table
+                print(table)
+            except Exception as e:
+                print(e)
+        else:
+            print("You have enter wrong option")
 
 ############################################################################################################
 
@@ -1275,24 +1292,24 @@ elif (identity_check == 3):
                                                     book_Issue_Date = "SELECT bookissuedate FROM bookIssue WHERE book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(
                                                         book_Name, book_Author, userID)
                                                     try:
-                                                        print("1")
+                                                        # print("1")
                                                         cursor.execute(
                                                             book_Issue_Date)
-                                                        print("2")
+                                                        # print("2")
                                                         book_Issue_Date_Data = cursor.fetchall()
-                                                        print("3")
+                                                        # print("3")
                                                         book_Due_Date = add_due_date(
                                                             book_Issue_Date_Data[0][0].strftime('%Y/%m/%d'), extend)
-                                                        print("4")
+                                                        # print("4")
                                                         book_Due = "Update bookIssue SET duedate = '{}' Where book_name = '{}' AND book_author = '{}' AND status= '1' AND userid = '{}';".format(
                                                             book_Due_Date, book_Name, book_Author, userID)
                                                         try:
-                                                            print("5")
+                                                            # print("5")
                                                             cursor.execute(
                                                                 book_Due)
-                                                            print("6")
+                                                            # print("6")
                                                             db.commit()
-                                                            print("7")
+                                                            # print("7")
                                                         except Exception as e:
                                                             print(e)
                                                     except Exception as e:

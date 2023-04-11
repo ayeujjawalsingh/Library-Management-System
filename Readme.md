@@ -11,7 +11,7 @@
 <hr>
 <h2 align="center">Description of Library Management System</h2>
 
-```
+```text
 In this project has three interfaces - one for the superuser, one for the staff, and another for the users. The purpose of the system is to enable all the operations performed in a physical library to be performed in a virtual environment. The system is written in Python and uses PostgreSQL for database operations.
 
 I have used the ARGON2 hashing technique to store passwords in an encrypted format, which is a good security measure to protect user data. This ensures that even if someone gains access to the database, they will not be able to read the passwords in plain text format.

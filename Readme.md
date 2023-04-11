@@ -28,9 +28,9 @@ Users can borrow books from the library and then return them within a certain du
 </p>
 <hr>
 
-<p>
+<!-- <p>
 In this Library Management System project, I have implemented a login system with three user types: super admin, staff, and user.
-</p>
+</p> -->
 
 ## 1. Super Admin Section
 

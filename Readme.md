@@ -10,6 +10,22 @@
 <a href="https://leetcode.com/ayeujjawalsingh/" target="_blank"><img alt="" src="https://img.shields.io/badge/Leetcode-000?logo=leetcode&logoColor=FFF926&style=for-the-badge" style="vertical-align:center" /></a></p>
 <hr>
 <h2 align="center">Description of Library Management System</h2>
+
+```
+In this project has three interfaces - one for the superuser, one for the staff, and another for the users. The purpose of the system is to enable all the operations performed in a physical library to be performed in a virtual environment. The system is written in Python and uses PostgreSQL for database operations.
+
+I have used the ARGON2 hashing technique to store passwords in an encrypted format, which is a good security measure to protect user data. This ensures that even if someone gains access to the database, they will not be able to read the passwords in plain text format.
+
+The superadmin account is the most powerful account in the system, and it can perform all the operations that are possible for both the staff and the users. Only the data administrator can create a superadmin account, ensuring that this level of access is given only to trusted individuals.
+
+The staff ID can only be created by the superadmin, and they have the power to add or remove books from the library. This ensures that the library's inventory is always up-to-date and accurate.
+
+Users can create their own accounts, or they can be created by the superadmin, giving them access to the system.
+
+The users have the ability to update their account information and reset their passwords if they forget them. This ensures that users can always access their accounts and their borrowed books without any issues.
+
+Users can borrow books from the library and then return them within a certain due date. If they fail to return the book on time, they will be charged a fine based on the book's category and the number of days overdue. This encourages users to return the books on time, and it also helps the library maintain its inventory.
+```
 <hr>
 
 ```
